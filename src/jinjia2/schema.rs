@@ -2,8 +2,7 @@ use serde_json::{Map, Value, json};
 
 use crate::jinjia2::parser::JinjaNode;
 
-/// 从 AST 构建 JSON 示例结构
-pub fn ast_to_json(ast: &[JinjaNode]) -> Value {
+pub(crate) fn ast_to_json(ast: &[JinjaNode]) -> Value {
     let mut root = Map::new();
 
     for node in ast {

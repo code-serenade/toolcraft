@@ -10,7 +10,7 @@ pub enum JinjaNode {
     },
 }
 
-pub fn parse_jinja2_ast(tags: &[String]) -> Vec<JinjaNode> {
+pub(crate) fn parse_jinja2_ast(tags: &[String]) -> Vec<JinjaNode> {
     let mut ast = Vec::new();
     let mut stack: Vec<JinjaNode> = Vec::new();
 
@@ -32,7 +32,6 @@ pub fn parse_jinja2_ast(tags: &[String]) -> Vec<JinjaNode> {
             let content = tag.trim_start_matches("{%").trim_end_matches("%}").trim();
             let parts: Vec<&str> = content.split_whitespace().collect();
             if let Some(for_index) = parts.iter().position(|&s| s == "for") {
-                // for_index + 1 is loop_var, for_index + 2 is "in", for_index + 3 is iterable
                 if for_index + 2 < parts.len() && parts[for_index + 2] == "in" {
                     let loop_var = parts
                         .get(for_index + 1)
