@@ -2,6 +2,11 @@
 name = "toolcraft"
 version = "0.1.0"
 edition = "2024"
+description = "A modular Rust toolkit"
+authors = ["Ancient <gamesworldcraft@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/code-serenade/toolcraft.git"
+documentation = "https://docs.rs/toolcraft"
 
 [dependencies]
 thiserror = "2"
