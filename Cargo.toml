@@ -4,3 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+thiserror = "2"
+tokio = { version = "1.46", features = ["full"] }
+regex = "1"
+zip = "4"
+quick-xml = { version = "0.38", features = ["encoding"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
