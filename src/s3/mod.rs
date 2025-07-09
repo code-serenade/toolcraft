@@ -1,31 +1,10 @@
 use base64::{Engine as _, engine::general_purpose};
 use chrono::{Duration, Utc};
 use hmac::{Hmac, Mac};
-use serde::Serialize;
-use serde_json::json;
+use serde_json::{Value, json};
 use sha2::Sha256;
 
 type HmacSha256 = Hmac<Sha256>;
-
-#[derive(Debug, Serialize)]
-pub struct PostPolicyResponse {
-    pub url: String,
-    pub fields: PostPolicyFields,
-}
-
-#[derive(Debug, Serialize)]
-pub struct PostPolicyFields {
-    pub key: String,
-    pub policy: String,
-    #[serde(rename = "x-amz-algorithm")]
-    pub x_amz_algorithm: String,
-    #[serde(rename = "x-amz-credential")]
-    pub x_amz_credential: String,
-    #[serde(rename = "x-amz-date")]
-    pub x_amz_date: String,
-    #[serde(rename = "x-amz-signature")]
-    pub x_amz_signature: String,
-}
 
 pub fn generate_post_policy(
     access_key: &str,
@@ -35,7 +14,7 @@ pub fn generate_post_policy(
     region: &str,
     endpoint: &str,
     max_file_mb: u64,
-) -> PostPolicyResponse {
+) -> Value {
     let now = Utc::now();
     let expiration = (now + Duration::minutes(10)).to_rfc3339();
 
@@ -69,17 +48,18 @@ pub fn generate_post_policy(
     let signature_bytes = hmac_sha256(&signing_key, policy_base64.as_bytes());
     let signature_hex = hex::encode(signature_bytes);
 
-    PostPolicyResponse {
-        url: format!("{}/{}", endpoint.trim_end_matches('/'), bucket),
-        fields: PostPolicyFields {
-            key: format!("{}${{filename}}", key_prefix),
-            policy: policy_base64,
-            x_amz_algorithm: "AWS4-HMAC-SHA256".to_string(),
-            x_amz_credential: format!("{}/{}/{}/s3/aws4_request", access_key, date_stamp, region),
-            x_amz_date: amz_date,
-            x_amz_signature: signature_hex,
-        },
-    }
+    // Construct the final JSON response
+    json!({
+        "url": format!("{}/{}", endpoint.trim_end_matches('/'), bucket),
+        "fields": {
+            "key": format!("{}${{filename}}", key_prefix),
+            "policy": policy_base64,
+            "x-amz-algorithm": "AWS4-HMAC-SHA256",
+            "x-amz-credential": format!("{}/{}/{}/s3/aws4_request", access_key, date_stamp, region),
+            "x-amz-date": amz_date,
+            "x-amz-signature": signature_hex
+        }
+    })
 }
 
 // HMAC-SHA256
