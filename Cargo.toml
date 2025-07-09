@@ -1,6 +1,6 @@
 [package]
 name = "toolcraft"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "A modular Rust toolkit"
 authors = ["Ancient <gamesworldcraft@gmail.com>"]
