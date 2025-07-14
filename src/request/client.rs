@@ -1,5 +1,4 @@
 use futures_util::StreamExt;
-use minio::s3::client;
 use reqwest::Client;
 use url::Url;
 
