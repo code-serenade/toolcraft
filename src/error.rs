@@ -9,11 +9,17 @@ pub enum Error {
     #[error("zip error: {0}")]
     ZipError(#[from] ZipError),
 
+    #[error("Invalid UTF8 sequence: {0}")]
+    Utf8(#[from] std::string::FromUtf8Error),
+
     #[error("request error: {0}")]
     RequestError(#[from] reqwest::Error),
 
     #[error("url error: {0}")]
     UrlError(#[from] url::ParseError),
+
+    #[error("minio error: {0}")]
+    MinioError(#[from] minio::s3::error::Error),
 
     #[error("failed to create graph")]
     GraphCreationError,
