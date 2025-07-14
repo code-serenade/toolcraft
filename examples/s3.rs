@@ -3,9 +3,9 @@ use toolcraft::s3::generate_post_policy;
 fn main() {
     let response = generate_post_policy(
         "ROOTNAME",
-        "CHANGEME123",
-        "test-bucket",
-        "upload/",
+        "secret_key",
+        "bucket_name",
+        "key_prefix/",
         "local_region",
         "http://127.0.0.1:9000",
         10,
