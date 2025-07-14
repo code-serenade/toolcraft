@@ -1,4 +1,5 @@
 use futures_util::StreamExt;
+use minio::s3::client;
 use reqwest::Client;
 use url::Url;
 
@@ -20,15 +21,15 @@ pub struct Request {
 
 impl Request {
     /// Create a new Request client.
-    pub fn new() -> Self {
-        Request {
-            client: Client::builder()
-                .timeout(std::time::Duration::from_secs(10))
-                .build()
-                .unwrap(),
+    pub fn new() -> Result<Self> {
+        let client = Client::builder()
+            .build()
+            .map_err(|e| Error::ErrorMessage(e.to_string()))?;
+        Ok(Request {
+            client,
             base_url: None,
             default_headers: HeaderMap::new(),
-        }
+        })
     }
 
     pub fn with_timeout(timeout_sec: u64) -> Result<Self> {
