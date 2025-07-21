@@ -26,3 +26,4 @@ url = "2.5"
 futures-util = "0.3"
 bytes = "1"
 minio = { version = "0.3" }
+docx-rs = { version = "0.4" }

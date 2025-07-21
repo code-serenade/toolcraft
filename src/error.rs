@@ -21,8 +21,8 @@ pub enum Error {
     #[error("minio error: {0}")]
     MinioError(#[from] minio::s3::error::Error),
 
-    #[error("failed to create graph")]
-    GraphCreationError,
+    #[error("docx reader error: {0}")]
+    DocxReaderError(#[from] docx_rs::ReaderError),
 
     #[error("error message: {0}")]
     ErrorMessage(String),
