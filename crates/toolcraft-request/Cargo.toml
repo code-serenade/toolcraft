@@ -1,11 +1,13 @@
 [package]
 name = "toolcraft-request"
 description = "Toolcraft request module"
+documentation = "https://docs.rs/toolcraft-request"
 publish = true
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+
 
 [dependencies]
 reqwest.workspace = true
