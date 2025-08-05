@@ -28,8 +28,3 @@ tag-name = "request-v{{version}}"
 file = "Cargo.toml"
 search = 'version = "[0-9]+\.[0-9]+\.[0-9]+"'
 replace = 'version = "{{version}}"'
-
-[[pre-release-replacements]]
-file = "crates/request/README.md"
-search = 'toolcraft-request = "[0-9]+\.[0-9]+\.[0-9]+"'
-replace = 'toolcraft-request = "{{version}}"'
