@@ -1,4 +1,5 @@
 pub mod client;
+pub mod error;
 pub mod header_map;
 pub mod response;
 

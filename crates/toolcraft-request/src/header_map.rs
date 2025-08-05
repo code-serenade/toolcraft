@@ -34,3 +34,9 @@ impl HeaderMap {
         &self.headers
     }
 }
+
+impl Default for HeaderMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}

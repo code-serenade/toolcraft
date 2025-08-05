@@ -4,10 +4,8 @@ use url::Url;
 
 use crate::{
     error::{Error, Result},
-    request::{
-        header_map::HeaderMap,
-        response::{ByteStream, Response},
-    },
+    header_map::HeaderMap,
+    response::{ByteStream, Response},
 };
 
 /// An HTTP request builder and executor with base URL and default headers.
@@ -23,7 +21,7 @@ impl Request {
     pub fn new() -> Result<Self> {
         let client = Client::builder()
             .build()
-            .map_err(|e| Error::ErrorMessage(e.to_string()))?;
+            .map_err(|e| Error::ErrorMessage(e.to_string().into()))?;
         Ok(Request {
             client,
             base_url: None,
@@ -35,7 +33,7 @@ impl Request {
         let client = Client::builder()
             .timeout(std::time::Duration::from_secs(timeout_sec))
             .build()
-            .map_err(|e| Error::ErrorMessage(e.to_string()))?;
+            .map_err(|e| Error::ErrorMessage(e.to_string().into()))?;
         Ok(Request {
             client,
             base_url: None,
@@ -137,10 +135,9 @@ impl Request {
 
         let response = request.send().await?;
         if !response.status().is_success() {
-            return Err(Error::ErrorMessage(format!(
-                "Unexpected status: {}",
-                response.status()
-            )));
+            return Err(Error::ErrorMessage(
+                format!("Unexpected status: {}", response.status()).into(),
+            ));
         }
 
         let stream = response
