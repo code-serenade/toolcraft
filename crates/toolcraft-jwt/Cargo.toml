@@ -2,6 +2,7 @@
 name = "toolcraft-jwt"
 description = "Toolcraft jwt module"
 documentation = "https://docs.rs/toolcraft-jwt"
+publish = true
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

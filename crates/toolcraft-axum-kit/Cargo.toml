@@ -2,6 +2,7 @@
 name = "toolcraft-axum-kit"
 description = "Toolcraft axum kit module"
 documentation = "https://docs.rs/toolcraft-axum-kit"
+publish = true
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
