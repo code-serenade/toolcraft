@@ -24,6 +24,7 @@
 - `toolcraft-axum-kit` - Axum web 服务工具包
 - `toolcraft-request` - HTTP 客户端封装
 - `toolcraft-config` - 配置管理库
+- `toolcraft-utils` - 通用工具函数库
 
 ### 使用示例
 

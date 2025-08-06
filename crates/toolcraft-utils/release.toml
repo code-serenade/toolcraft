@@ -1,0 +1,27 @@
+# cargo-release configuration for toolcraft-utils
+
+# 允许的分支
+allow-branch = ["main"]
+
+# Git 配置
+sign-commit = false
+sign-tag = false
+tag = true
+push = false
+
+# 发布配置
+publish = true
+verify = true
+
+# 依赖版本控制
+dependent-version = "fix"  # 不自动更新依赖版本
+
+# 发布前检查
+pre-release-hook = ["cargo", "test", "--package", "toolcraft-utils"]
+
+# commit 消息模板
+pre-release-commit-message = "chore: release toolcraft-utils v{{version}}"
+
+# 标签配置
+tag-message = "Release toolcraft-utils v{{version}}"
+tag-name = "utils-v{{version}}"

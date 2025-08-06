@@ -43,6 +43,7 @@ if [ -z "$PACKAGE" ] || [ -z "$VERSION" ]; then
     echo "  - toolcraft-axum-kit"
     echo "  - toolcraft-request"
     echo "  - toolcraft-config"
+    echo "  - toolcraft-utils"
     echo ""
     echo "Example:"
     echo "  ./scripts/release.sh toolcraft-jwt 0.2.1"

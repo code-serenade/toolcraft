@@ -2,7 +2,7 @@
 members = [
     "crates/toolcraft-axum-kit", "crates/toolcraft-config",
     "crates/toolcraft-jwt",
-    "crates/toolcraft-request",
+    "crates/toolcraft-request", "crates/toolcraft-utils",
 ]
 resolver = "3"
 

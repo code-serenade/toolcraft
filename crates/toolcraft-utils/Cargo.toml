@@ -1,0 +1,12 @@
+[package]
+name = "toolcraft-utils"
+description = "Common utilities for toolcraft ecosystem"
+documentation = "https://docs.rs/toolcraft-utils"
+publish = true
+version = "0.2.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
