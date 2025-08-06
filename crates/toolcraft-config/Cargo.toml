@@ -1,0 +1,15 @@
+[package]
+name = "toolcraft-config"
+description = "Toolcraft config module"
+documentation = "https://docs.rs/toolcraft-config"
+publish = true
+version = "0.2.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+config = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }

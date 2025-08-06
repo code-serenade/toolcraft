@@ -14,7 +14,7 @@ publish = true
 verify = true
 
 # 依赖版本控制
-dependent-version = "fix"  # 不自动更新依赖版本
+dependent-version = "fix" # 不自动更新依赖版本
 
 # 发布前检查
 pre-release-hook = ["cargo", "test", "--package", "toolcraft-axum-kit"]

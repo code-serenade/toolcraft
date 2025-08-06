@@ -23,6 +23,7 @@
 - `toolcraft-jwt` - JWT 认证库
 - `toolcraft-axum-kit` - Axum web 服务工具包
 - `toolcraft-request` - HTTP 客户端封装
+- `toolcraft-config` - 配置管理库
 
 ### 使用示例
 
