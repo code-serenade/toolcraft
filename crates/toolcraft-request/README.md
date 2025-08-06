@@ -21,8 +21,10 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-toolcraft-request = "0.2.1"
+toolcraft-request = "*"
 ```
+
+Check the [crates.io page](https://crates.io/crates/toolcraft-request) for the latest version.
 
 ## Quick Start
 

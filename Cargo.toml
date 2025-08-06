@@ -1,5 +1,9 @@
 [workspace]
-members = ["crates/toolcraft-request"]
+members = [
+    "crates/toolcraft-axum-kit",
+    "crates/toolcraft-jwt",
+    "crates/toolcraft-request",
+]
 resolver = "3"
 
 
@@ -13,6 +17,11 @@ repository = "https://github.com/code-serenade/toolcraft.git"
 documentation = "https://docs.rs/toolcraft"
 
 [workspace.dependencies]
+# internal dependencies
+toolcraft-jwt = { path = "crates/toolcraft-jwt" }
+toolcraft-axum-kit = { path = "crates/toolcraft-axum-kit" }
+toolcraft-request = { path = "crates/toolcraft-request" }
+
 thiserror = "2"
 tokio = { version = "1.46", features = ["full"] }
 regex = "1"
@@ -31,3 +40,13 @@ futures-util = "0.3"
 bytes = "1"
 minio = { version = "0.3" }
 docx-rs = { version = "0.4" }
+byteorder = "1.5"
+config = "0.15"
+futures = "0.3"
+jsonwebtoken = "9"
+tokio-tungstenite = "0.27"
+axum = { version = "0.8", features = ["macros"] }
+tower-http = { version = "0.6", features = ["cors"] }
+surrealdb = "2"
+rand = "0.9"
+utoipa = "5"
