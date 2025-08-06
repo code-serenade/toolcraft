@@ -1,0 +1,24 @@
+# cargo-release configuration for toolcraft-request
+
+# 允许的分支
+allow-branch = ["main"]
+
+# Git 配置
+sign-commit = false
+sign-tag = false
+tag = true
+push = false
+
+# 发布配置
+publish = true
+verify = true
+
+# 发布前检查
+pre-release-hook = ["cargo", "test", "--package", "toolcraft-request"]
+
+# commit 消息模板
+pre-release-commit-message = "chore: release toolcraft-request v{{version}}"
+
+# 标签配置
+tag-message = "Release toolcraft-request v{{version}}"
+tag-name = "request-v{{version}}"
