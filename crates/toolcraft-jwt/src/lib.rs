@@ -284,7 +284,10 @@ impl Jwt {
 fn generate_expired_time(duration: usize) -> (usize, usize) {
     let now = Utc::now();
     let iat = now.timestamp() as usize;
-    let exp = (now + Duration::seconds(duration as i64)).timestamp() as usize;
+    let exp = (now
+        + Duration::try_seconds(i64::try_from(duration).expect("duration overflow"))
+            .expect("duration out of range"))
+    .timestamp() as usize;
     (iat, exp)
 }
 

@@ -7,6 +7,14 @@ use crate::error::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Load settings from a configuration file.
+///
+/// # Errors
+///
+/// Returns an error if:
+/// - The configuration file cannot be read
+/// - The configuration file contains invalid syntax
+/// - The configuration cannot be deserialized into the target type
 pub fn load_settings<T>(config_path: &str) -> Result<T>
 where
     T: DeserializeOwned,

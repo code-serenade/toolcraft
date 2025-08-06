@@ -32,7 +32,10 @@ fn parse_token(headers: &HeaderMap) -> Result<String, StatusCode> {
         .get(header::AUTHORIZATION)
         .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    let mut parts = authorization.to_str().unwrap().splitn(2, ' ');
+    let auth_str = authorization
+        .to_str()
+        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let mut parts = auth_str.splitn(2, ' ');
     match parts.next() {
         Some("Bearer") => {}
         _ => return Err(StatusCode::UNAUTHORIZED),

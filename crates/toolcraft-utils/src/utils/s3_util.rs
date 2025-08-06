@@ -6,6 +6,7 @@ use sha2::Sha256;
 
 type HmacSha256 = Hmac<Sha256>;
 
+#[must_use]
 pub fn generate_s3_post_policy(
     access_key: &str,
     secret_key: &str,
