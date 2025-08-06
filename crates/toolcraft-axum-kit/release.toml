@@ -13,10 +13,8 @@ push = false
 publish = true
 verify = true
 
-# 依赖更新配置
-[[dependencies]]
-name = "toolcraft-jwt"
-upgrade = false  # 不自动升级版本
+# 依赖版本控制
+dependent-version = "fix"  # 不自动更新依赖版本
 
 # 发布前检查
 pre-release-hook = ["cargo", "test", "--package", "toolcraft-axum-kit"]
