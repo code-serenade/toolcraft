@@ -10,7 +10,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-toolcraft-jwt = { workspace = true }
+toolcraft-jwt = { version = "0.2.0", path = "../toolcraft-jwt" }
 
 axum = { workspace = true }
 tower-http = { workspace = true }
