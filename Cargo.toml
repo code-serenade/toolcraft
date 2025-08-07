@@ -2,7 +2,7 @@
 members = [
     "crates/toolcraft-axum-kit", "crates/toolcraft-config",
     "crates/toolcraft-jwt",
-    "crates/toolcraft-request", "crates/toolcraft-utils",
+    "crates/toolcraft-request", "crates/toolcraft-s3-kit", "crates/toolcraft-utils",
 ]
 resolver = "3"
 
@@ -21,6 +21,7 @@ documentation = "https://docs.rs/toolcraft"
 toolcraft-jwt = { path = "crates/toolcraft-jwt" }
 toolcraft-axum-kit = { path = "crates/toolcraft-axum-kit" }
 toolcraft-request = { path = "crates/toolcraft-request" }
+toolcraft-s3-kit = { path = "crates/toolcraft-s3-kit" }
 
 thiserror = "2"
 tokio = { version = "1.46", features = ["full"] }

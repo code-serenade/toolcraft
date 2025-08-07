@@ -1,0 +1,15 @@
+[package]
+name = "toolcraft-s3-kit"
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+minio.workspace = true
+url.workspace = true
+zip.workspace = true
