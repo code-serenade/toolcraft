@@ -1,12 +1,13 @@
 [package]
 name = "toolcraft-s3-kit"
-version.workspace = true
+description = "Toolcraft s3 module"
+documentation = "https://docs.rs/toolcraft-s3-kit"
+publish = true
+version = "0.2.2"
 edition.workspace = true
-description.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-documentation.workspace = true
 
 [dependencies]
 thiserror.workspace = true
