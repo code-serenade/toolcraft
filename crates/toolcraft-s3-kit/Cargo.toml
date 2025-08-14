@@ -14,3 +14,5 @@ thiserror.workspace = true
 minio.workspace = true
 url.workspace = true
 zip.workspace = true
+tokio = { workspace = true, features = ["fs", "io-util"] }
+bytes.workspace = true

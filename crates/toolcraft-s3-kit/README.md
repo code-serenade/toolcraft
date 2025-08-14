@@ -95,6 +95,42 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### Download Examples
+
+```rust
+use toolcraft_s3_kit::S3Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = S3Client::new(
+        "http://localhost:9000",
+        "minioadmin",
+        "minioadmin",
+        None,
+    )?;
+    
+    // Download file to local filesystem
+    let bytes_downloaded = client
+        .download_file("my-bucket", "large-file.pdf", "/tmp/downloaded.pdf")
+        .await?;
+    println!("Downloaded {} bytes to /tmp/downloaded.pdf", bytes_downloaded);
+    
+    // Download file to memory
+    let file_bytes = client
+        .download_to_bytes("my-bucket", "document.docx")
+        .await?;
+    println!("Downloaded {} bytes to memory", file_bytes.len());
+    
+    // Read text file content
+    let text_content = client
+        .read_text_file("my-bucket", "config.json")
+        .await?;
+    println!("File content:\n{}", text_content);
+    
+    Ok(())
+}
+```
+
 ## Advanced Features
 
 ### Custom Configuration
@@ -139,6 +175,9 @@ match client.get_object("bucket", "key").await {
   - `delete_object()`
   - `list_objects()`
   - `object_exists()`
+  - `read_text_file()` - Read text files from S3
+  - `download_file()` - Download files to local filesystem
+  - `download_to_bytes()` - Download files to memory
 
 - **Presigned URLs**
   - `presigned_get_object()`
