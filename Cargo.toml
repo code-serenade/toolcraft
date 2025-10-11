@@ -27,20 +27,20 @@ toolcraft-axum-kit = { path = "crates/toolcraft-axum-kit" }
 toolcraft-request = { path = "crates/toolcraft-request" }
 toolcraft-s3-kit = { path = "crates/toolcraft-s3-kit" }
 
-thiserror = "2"
+thiserror = "2.0.17"
 tokio = { version = "1.46", features = ["full"] }
-regex = "1"
-zip = "4"
+regex = "1.12.1"
+zip = "6"
 quick-xml = { version = "0.38", features = ["encoding"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde_json = "1.0.145"
 base64 = "0.22"
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { version = "0.4.42", features = ["serde"] }
 hmac = "0.12"
 sha2 = "0.10"
 hex = "0.4"
 reqwest = { version = "0.12", features = ["json", "stream"] }
-url = "2.5"
+url = "2.5.7"
 futures-util = "0.3"
 bytes = "1"
 minio = { version = "0.3" }
@@ -48,10 +48,11 @@ docx-rs = { version = "0.4" }
 byteorder = "1.5"
 config = "0.15"
 futures = "0.3"
-jsonwebtoken = "9"
-tokio-tungstenite = "0.27"
-axum = { version = "0.8", features = ["macros"] }
+jsonwebtoken = "9.3"
+tokio-tungstenite = "0.28"
+axum = { version = "0.8.6", features = ["macros"] }
 tower-http = { version = "0.6", features = ["cors"] }
 surrealdb = "2"
-rand = "0.9"
+rand = "0.9.2"
 utoipa = "5"
+time = "0.3.44"

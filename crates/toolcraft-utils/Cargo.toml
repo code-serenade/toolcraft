@@ -17,3 +17,4 @@ hmac = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
 base64 = { workspace = true }
 hex = { workspace = true }
+time = { workspace = true }
