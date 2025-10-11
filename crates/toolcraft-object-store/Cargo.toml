@@ -1,0 +1,12 @@
+[package]
+name = "toolcraft-object-store"
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
