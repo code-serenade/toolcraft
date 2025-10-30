@@ -10,6 +10,21 @@ members = [
 ]
 resolver = "3"
 
+[package]
+name = "toolcraft"
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+
+[dependencies]
+toolcraft-request = { path = "crates/toolcraft-request" }
+tokio = { workspace = true }
+futures-util = { workspace = true }
+serde_json = { workspace = true }
 
 [workspace.package]
 version = "0.2.2"
@@ -39,7 +54,7 @@ chrono = { version = "0.4.42", features = ["serde"] }
 hmac = "0.12"
 sha2 = "0.10"
 hex = "0.4"
-reqwest = { version = "0.12", features = ["json", "stream"] }
+reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
 url = "2.5.7"
 futures-util = "0.3"
 bytes = "1"
