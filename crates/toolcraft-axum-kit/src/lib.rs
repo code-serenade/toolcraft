@@ -5,5 +5,5 @@ pub mod response;
 
 pub use http_server::start;
 pub use response::{
-    CommonError, CommonOk, CommonResponse, Empty, IntoCommonResponse, ResponseResult, Result,
+    CommonError, CommonOk, CommonResponse, Empty, IntoCommonResponse, ResponseResult,
 };

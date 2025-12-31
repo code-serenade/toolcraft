@@ -8,6 +8,7 @@ use utoipa::ToSchema;
 pub struct Empty;
 
 pub type CommonOk = CommonResponse<Empty>;
+pub type ApiError = (StatusCode, Json<CommonError>);
 
 pub trait IntoCommonResponse<T>
 where
@@ -82,6 +83,4 @@ impl From<(i16, &str)> for CommonError {
     }
 }
 
-pub type ResponseResult<T> =
-    core::result::Result<Json<CommonResponse<T>>, (StatusCode, Json<CommonError>)>;
-pub type Result<T> = core::result::Result<T, (StatusCode, Json<CommonError>)>;
+pub type ResponseResult<T> = core::result::Result<Json<CommonResponse<T>>, ApiError>;
