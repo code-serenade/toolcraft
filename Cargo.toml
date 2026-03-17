@@ -41,6 +41,7 @@ toolcraft-jwt = { path = "crates/toolcraft-jwt" }
 toolcraft-axum-kit = { path = "crates/toolcraft-axum-kit" }
 toolcraft-request = { path = "crates/toolcraft-request" }
 toolcraft-s3-kit = { path = "crates/toolcraft-s3-kit" }
+toolcraft-utils = { path = "crates/toolcraft-utils" }
 
 thiserror = "2.0.17"
 tokio = { version = "1.46", features = ["full"] }

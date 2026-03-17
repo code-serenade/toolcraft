@@ -11,7 +11,7 @@ repository.workspace = true
 
 [dependencies]
 toolcraft-request = { workspace = true }
-toolcraft-utils = { path = "../toolcraft-utils" }
+toolcraft-utils = { workspace = true}
 thiserror.workspace = true
 reqwest.workspace = true
 bytes.workspace = true
