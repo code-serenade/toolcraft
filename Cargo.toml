@@ -58,7 +58,6 @@ reqwest = { version = "0.13", default-features = false, features = ["json", "str
 url = "2.5.7"
 futures-util = "0.3"
 bytes = "1"
-minio = { version = "0.3" }
 docx-rs = { version = "0.4" }
 byteorder = "1.5"
 config = "0.15"

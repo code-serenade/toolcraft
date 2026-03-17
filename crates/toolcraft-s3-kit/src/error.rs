@@ -1,19 +1,21 @@
 use thiserror::Error;
-use zip::result::ZipError;
 
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("request error: {0}")]
+    Request(#[from] reqwest::Error),
+
     #[error("io error: {0}")]
-    IoError(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
 
-    #[error("zip error: {0}")]
-    ZipError(#[from] ZipError),
+    #[error("url parse error: {0}")]
+    Url(#[from] url::ParseError),
 
-    #[error("Invalid UTF8 sequence: {0}")]
-    Utf8(#[from] std::string::FromUtf8Error),
+    #[error("s3 error {status}: {message}")]
+    S3 { status: u16, message: String },
 
-    #[error("error message: {0}")]
-    ErrorMessage(Box<str>),
+    #[error("{0}")]
+    Message(Box<str>),
 }
 
 pub type Result<T, E = Error> = core::result::Result<T, E>;

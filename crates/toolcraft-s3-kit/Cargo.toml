@@ -1,18 +1,19 @@
 [package]
 name = "toolcraft-s3-kit"
-description = "Toolcraft s3 module"
+description = "Toolcraft S3-compatible storage client"
 documentation = "https://docs.rs/toolcraft-s3-kit"
 publish = true
-version = "0.2.0"
+version = "0.3.0"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
 
 [dependencies]
+toolcraft-request = { workspace = true }
+toolcraft-utils = { path = "../toolcraft-utils" }
 thiserror.workspace = true
-minio.workspace = true
-url.workspace = true
-zip.workspace = true
-tokio = { workspace = true, features = ["fs", "io-util"] }
+reqwest.workspace = true
 bytes.workspace = true
+url.workspace = true
+tokio = { workspace = true, features = ["fs"] }

@@ -1,4 +1,8 @@
+pub mod bucket_client;
+pub mod client;
 pub mod error;
-pub mod minio;
+pub(crate) mod util;
 
-pub use minio::s3::S3Client;
+pub use bucket_client::BucketClient;
+pub use client::S3Client;
+pub use util::ObjectInfo;
