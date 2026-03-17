@@ -36,12 +36,12 @@ repository = "https://github.com/code-serenade/toolcraft.git"
 documentation = "https://docs.rs/toolcraft"
 
 [workspace.dependencies]
-# internal dependencies
-toolcraft-jwt = { path = "crates/toolcraft-jwt" }
-toolcraft-axum-kit = { path = "crates/toolcraft-axum-kit" }
-toolcraft-request = { path = "crates/toolcraft-request" }
-toolcraft-s3-kit = { path = "crates/toolcraft-s3-kit" }
-toolcraft-utils = { path = "crates/toolcraft-utils" }
+# internal dependencies — path is used locally, version is required by cargo publish
+toolcraft-jwt = { path = "crates/toolcraft-jwt", version = "0.2.2" }
+toolcraft-axum-kit = { path = "crates/toolcraft-axum-kit", version = "0.2.4" }
+toolcraft-request = { path = "crates/toolcraft-request", version = "0.2.3" }
+toolcraft-s3-kit = { path = "crates/toolcraft-s3-kit", version = "0.2.1" }
+toolcraft-utils = { path = "crates/toolcraft-utils", version = "0.2.3" }
 
 thiserror = "2.0.17"
 tokio = { version = "1.46", features = ["full"] }
