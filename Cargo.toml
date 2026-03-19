@@ -37,7 +37,7 @@ documentation = "https://docs.rs/toolcraft"
 
 [workspace.dependencies]
 # internal dependencies — path is used locally, version is required by cargo publish
-toolcraft-jwt = { path = "crates/toolcraft-jwt"}
+toolcraft-jwt = { path = "crates/toolcraft-jwt", version = "0.3.3" }
 toolcraft-axum-kit = { path = "crates/toolcraft-axum-kit" }
 toolcraft-request = { path = "crates/toolcraft-request"}
 toolcraft-s3-kit = { path = "crates/toolcraft-s3-kit" }
