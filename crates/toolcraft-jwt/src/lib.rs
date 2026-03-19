@@ -2,8 +2,8 @@ pub mod error;
 mod jwt;
 mod verify;
 
-pub use jwt::{Claims, Jwt, JwtCfg};
-pub use verify::VerifyJwt;
+pub use jwt::{Claims, Jwt, JwtCfg, TokenPair};
+pub use verify::{VerifyJwt, VerifyJwtCfg};
 
 use crate::error::Error;
 pub type Result<T> = std::result::Result<T, Error>;

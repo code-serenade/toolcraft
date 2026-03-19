@@ -5,6 +5,7 @@ use jsonwebtoken::{
     Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::{AccessTokenVerifier, Result, error::Error};
 
@@ -21,6 +22,7 @@ pub struct JwtCfg {
     pub refresh_private_key_pem: Option<String>,
     #[serde(default)]
     pub refresh_public_key_pem: Option<String>,
+    pub issuer: String,
     pub audience: String,
     pub access_token_duration: usize,
     pub refresh_token_duration: usize,
@@ -31,16 +33,44 @@ pub struct JwtCfg {
 /// Represents the JWT claims.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
+    pub iss: String,
     pub aud: String,
     pub sub: String,
     pub exp: usize,
     pub iat: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ext: Option<Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenPair {
+    pub access_token: String,
+    pub refresh_token: String,
 }
 
 impl Claims {
     /// Creates a new `Claims` instance.
-    pub fn new(aud: String, sub: String, exp: usize, iat: usize) -> Self {
-        Self { aud, sub, exp, iat }
+    pub fn new(iss: String, aud: String, sub: String, exp: usize, iat: usize) -> Self {
+        Self::new_with_ext(iss, aud, sub, exp, iat, None)
+    }
+
+    /// Creates a new `Claims` instance with custom extension payload.
+    pub fn new_with_ext(
+        iss: String,
+        aud: String,
+        sub: String,
+        exp: usize,
+        iat: usize,
+        ext: Option<Value>,
+    ) -> Self {
+        Self {
+            iss,
+            aud,
+            sub,
+            exp,
+            iat,
+            ext,
+        }
     }
 }
 
@@ -60,6 +90,7 @@ pub struct Jwt {
     decoding_refresh_key: DecodingKey,
     validation_access_key: Validation,
     validation_refresh_key: Validation,
+    iss: String,
     aud: String,
     access_token_duration: usize,
     refresh_token_duration: usize,
@@ -86,6 +117,7 @@ impl Jwt {
 
         let header = Header::new(Algorithm::EdDSA);
         let mut validation_access_key = Validation::new(Algorithm::EdDSA);
+        validation_access_key.set_issuer(std::slice::from_ref(&cfg.issuer));
         validation_access_key.set_audience(std::slice::from_ref(&cfg.audience));
         let mut validation_refresh_key = validation_access_key.clone();
         validation_access_key.validate_exp = cfg.access_key_validate_exp;
@@ -99,6 +131,7 @@ impl Jwt {
             decoding_refresh_key,
             validation_access_key,
             validation_refresh_key,
+            iss: cfg.issuer,
             aud: cfg.audience,
             access_token_duration: cfg.access_token_duration,
             refresh_token_duration: cfg.refresh_token_duration,
@@ -106,21 +139,24 @@ impl Jwt {
     }
 
     /// Generates a pair of access and refresh tokens.
-    pub fn generate_token_pair(&self, sub: String) -> Result<(String, String)> {
-        let access_token = self.generate_token(&TokenKind::Access, &sub)?;
-        let refresh_token = self.generate_token(&TokenKind::Refesh, &sub)?;
-        Ok((access_token, refresh_token))
+    pub fn generate_token_pair(&self, sub: String, ext: Option<Value>) -> Result<TokenPair> {
+        let access_token = self.generate_token(&TokenKind::Access, &sub, ext.clone())?;
+        let refresh_token = self.generate_token(&TokenKind::Refesh, &sub, ext)?;
+        Ok(TokenPair {
+            access_token,
+            refresh_token,
+        })
     }
 
-    /// Generates an access token.
-    pub fn generate_access_token(&self, sub: String) -> Result<String> {
-        self.generate_token(&TokenKind::Access, &sub)
+    /// Generates a pair of access and refresh tokens for subject only (`ext = None`).
+    pub fn generate_token_pair_for_subject(&self, sub: String) -> Result<TokenPair> {
+        self.generate_token_pair(sub, None)
     }
 
     /// Refreshes an access token using a refresh token.
     pub fn refresh_access_token(&self, refresh_token: &str) -> Result<String> {
         let claims = self.validate_refresh_token(refresh_token)?;
-        self.generate_access_token(claims.sub)
+        self.generate_token(&TokenKind::Access, &claims.sub, claims.ext)
     }
 
     /// Validates an access token.
@@ -135,11 +171,11 @@ impl Jwt {
             .map(|data| data.claims)
     }
 
-    fn generate_token(&self, kind: &TokenKind, sub: &str) -> Result<String> {
+    fn generate_token(&self, kind: &TokenKind, sub: &str, ext: Option<Value>) -> Result<String> {
         let duration = self.get_token_duration(kind);
         let (iat, exp) = self.generate_timestamps(duration);
         let key = self.select_encoding_key(kind);
-        let claims = self.create_claims(sub, iat, exp);
+        let claims = self.create_claims(sub, iat, exp, ext);
         encode(&self.header, &claims, key).map_err(|e| Error::AuthError(e.to_string().into()))
     }
 
@@ -166,8 +202,15 @@ impl Jwt {
         }
     }
 
-    fn create_claims(&self, sub: &str, iat: usize, exp: usize) -> Claims {
-        Claims::new(self.aud.clone(), sub.to_string(), exp, iat)
+    fn create_claims(&self, sub: &str, iat: usize, exp: usize, ext: Option<Value>) -> Claims {
+        Claims::new_with_ext(
+            self.iss.clone(),
+            self.aud.clone(),
+            sub.to_string(),
+            exp,
+            iat,
+            ext,
+        )
     }
 
     fn select_decoding_key_and_validation(&self, kind: &TokenKind) -> (&DecodingKey, &Validation) {
@@ -270,6 +313,7 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
             access_public_key_pem: Some(ACCESS_PUBLIC_KEY_PEM.to_string()),
             refresh_private_key_pem: Some(REFRESH_PRIVATE_KEY_PEM.to_string()),
             refresh_public_key_pem: Some(REFRESH_PUBLIC_KEY_PEM.to_string()),
+            issuer: "test_issuer".to_string(),
             audience: "test_audience".to_string(),
             access_token_duration: 3600,
             refresh_token_duration: 86400,
@@ -281,29 +325,25 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
     #[test]
     fn test_generate_token_pair() {
         let jwt = setup_jwt();
-        let (access_token, refresh_token) =
-            jwt.generate_token_pair("test_sub".to_string()).unwrap();
+        let token_pair = jwt
+            .generate_token_pair("test_sub".to_string(), None)
+            .unwrap();
 
-        assert!(!access_token.is_empty());
-        assert!(!refresh_token.is_empty());
-    }
-
-    #[test]
-    fn test_generate_access_token() {
-        let jwt = setup_jwt();
-        let access_token = jwt.generate_access_token("test_sub".to_string()).unwrap();
-
-        assert!(!access_token.is_empty());
+        assert!(!token_pair.access_token.is_empty());
+        assert!(!token_pair.refresh_token.is_empty());
     }
 
     #[test]
     fn test_validate_access_token() {
         let jwt = setup_jwt();
-        let access_token = jwt.generate_access_token("test_sub".to_string()).unwrap();
-        let validation_result = jwt.validate_access_token(&access_token);
+        let token_pair = jwt
+            .generate_token_pair("test_sub".to_string(), None)
+            .unwrap();
+        let validation_result = jwt.validate_access_token(&token_pair.access_token);
 
         assert!(validation_result.is_ok());
         let claims = validation_result.unwrap();
+        assert_eq!(claims.iss, "test_issuer");
         assert_eq!(claims.aud, "test_audience");
         assert_eq!(claims.sub, "test_sub");
     }
@@ -311,11 +351,14 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
     #[test]
     fn test_validate_refresh_token() {
         let jwt = setup_jwt();
-        let (_, refresh_token) = jwt.generate_token_pair("test_sub".to_string()).unwrap();
-        let validation_result = jwt.validate_refresh_token(&refresh_token);
+        let token_pair = jwt
+            .generate_token_pair("test_sub".to_string(), None)
+            .unwrap();
+        let validation_result = jwt.validate_refresh_token(&token_pair.refresh_token);
 
         assert!(validation_result.is_ok());
         let claims = validation_result.unwrap();
+        assert_eq!(claims.iss, "test_issuer");
         assert_eq!(claims.aud, "test_audience");
         assert_eq!(claims.sub, "test_sub");
     }
@@ -344,6 +387,7 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
             access_public_key_pem: None,
             refresh_private_key_pem: None,
             refresh_public_key_pem: None,
+            issuer: "test_issuer".to_string(),
             audience: "test_audience".to_string(),
             access_token_duration: 3600,
             refresh_token_duration: 86400,
@@ -351,8 +395,24 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
             refresh_key_validate_exp: true,
         });
 
-        let access_token = jwt.generate_access_token("test_sub".to_string()).unwrap();
-        let claims = jwt.validate_access_token(&access_token).unwrap();
+        let token_pair = jwt
+            .generate_token_pair("test_sub".to_string(), None)
+            .unwrap();
+        let claims = jwt.validate_access_token(&token_pair.access_token).unwrap();
         assert_eq!(claims.sub, "test_sub");
+    }
+
+    #[test]
+    fn test_refresh_access_token_keeps_ext() {
+        let jwt = setup_jwt();
+        let token_pair = jwt
+            .generate_token_pair(
+                "test_sub".to_string(),
+                Some(serde_json::json!({"role":"admin"})),
+            )
+            .unwrap();
+        let access_token = jwt.refresh_access_token(&token_pair.refresh_token).unwrap();
+        let claims = jwt.validate_access_token(&access_token).unwrap();
+        assert_eq!(claims.ext.unwrap()["role"], "admin");
     }
 }

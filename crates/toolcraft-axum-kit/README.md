@@ -132,6 +132,7 @@ let jwt_config = toolcraft_jwt::JwtCfg {
     access_public_key_pem: None,
     refresh_private_key_pem: None,
     refresh_public_key_pem: None,
+    issuer: "your-issuer".to_string(),
     audience: "your-app".to_string(),
     access_token_duration: 3600,
     refresh_token_duration: 86400,
@@ -144,7 +145,8 @@ let jwt_verifier = Arc::new(Jwt::new(jwt_config));
 // Protected routes
 let protected_routes = Router::new()
     .route("/profile", get(get_profile))
-    .layer(middleware::from_fn_with_state(jwt_verifier, auth::<Jwt>));
+    .layer(middleware::from_fn(auth::<Jwt>))
+    .layer(Extension(jwt_verifier));
 
 // Handler with authentication
 async fn get_profile(Extension(user_id): Extension<UserId>) -> CommonOk<String> {
@@ -246,7 +248,7 @@ async fn flexible_handler(id: u64) -> ResponseResult<User> {
 ### Middleware
 
 - `cors_layer()` - CORS middleware layer
-- `auth::<T>` + `from_fn_with_state(...)` - JWT auth middleware using static dispatch (requires `jwt` feature)
+- `auth::<T>` + `from_fn(...)` + `Extension(Arc<T>)` - JWT auth middleware using static dispatch (requires `jwt` feature)
 
 ## Features
 

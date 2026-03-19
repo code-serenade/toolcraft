@@ -39,6 +39,7 @@ fn main() {
         access_public_key_pem: None,
         refresh_private_key_pem: None,
         refresh_public_key_pem: None,
+        issuer: "your-issuer".to_string(),
         audience: "your-app".to_string(),
         access_token_duration: 3600,  // 1 hour
         refresh_token_duration: 86400, // 24 hours
@@ -50,15 +51,15 @@ fn main() {
     let jwt = Jwt::new(config);
 
     // Generate token pair
-    let (access_token, refresh_token) = jwt
-        .generate_token_pair("user123".to_string())
+    let token_pair = jwt
+        .generate_token_pair("user123".to_string(), None)
         .expect("Failed to generate tokens");
 
-    println!("Access token: {}", access_token);
-    println!("Refresh token: {}", refresh_token);
+    println!("Access token: {}", token_pair.access_token);
+    println!("Refresh token: {}", token_pair.refresh_token);
 
     // Validate access token
-    match jwt.validate_access_token(&access_token) {
+    match jwt.validate_access_token(&token_pair.access_token) {
         Ok(claims) => {
             println!("Valid token for user: {}", claims.sub);
             println!("Expires at: {}", claims.exp);
@@ -73,32 +74,32 @@ fn main() {
 ### Token Generation
 
 ```rust
-// Generate only access token
-let access_token = jwt.generate_access_token("user123".to_string())?;
-
 // Generate token pair
-let (access_token, refresh_token) = jwt.generate_token_pair("user123".to_string())?;
+let token_pair = jwt.generate_token_pair(
+    "user123".to_string(),
+    Some(serde_json::json!({"role":"admin"})),
+)?;
 ```
 
 ### Token Validation
 
 ```rust
 // Validate access token
-let claims = jwt.validate_access_token(&access_token)?;
+let claims = jwt.validate_access_token(&token_pair.access_token)?;
 println!("User ID: {}", claims.sub);
 println!("Audience: {}", claims.aud);
 println!("Issued at: {}", claims.iat);
 println!("Expires at: {}", claims.exp);
 
 // Validate refresh token
-let claims = jwt.validate_refresh_token(&refresh_token)?;
+let claims = jwt.validate_refresh_token(&token_pair.refresh_token)?;
 ```
 
 ### Token Refresh
 
 ```rust
 // Use refresh token to get new access token
-let new_access_token = jwt.refresh_access_token(&refresh_token)?;
+let new_access_token = jwt.refresh_access_token(&token_pair.refresh_token)?;
 ```
 
 ### Custom Configuration
@@ -112,6 +113,7 @@ let config = JwtCfg {
     access_public_key_pem: None,
     refresh_private_key_pem: None,
     refresh_public_key_pem: None,
+    issuer: "my-issuer".to_string(),
     audience: "my-api".to_string(),
     access_token_duration: 900,    // 15 minutes
     refresh_token_duration: 604800, // 7 days
@@ -125,6 +127,7 @@ let config = JwtCfg {
 ```toml
 [jwt]
 key_dir = "/etc/myapp/jwt"
+issuer = "my-issuer"
 audience = "my-api"
 access_token_duration = 900
 refresh_token_duration = 604800
@@ -161,9 +164,15 @@ match jwt.validate_access_token(&token) {
 ### Verify-Only (Public Key)
 
 ```rust
-use toolcraft_jwt::VerifyJwt;
+use toolcraft_jwt::{VerifyJwt, VerifyJwtCfg};
 
-let verifier = VerifyJwt::new(std::env::var("JWT_PUBLIC_KEY_PEM").unwrap())?;
+let verifier = VerifyJwt::new(
+    std::env::var("JWT_PUBLIC_KEY_PEM").unwrap(),
+    VerifyJwtCfg {
+        issuer: "your-issuer".to_string(),
+        audience: "your-audience".to_string(),
+    },
+)?;
 let claims = verifier.validate_token(&token)?;
 println!("sub={}", claims.sub);
 ```
@@ -183,6 +192,7 @@ Configuration struct for JWT settings:
   - `access_public_key.pem`
   - `refresh_private_key.pem`
   - `refresh_public_key.pem`
+- `issuer`: Expected issuer claim
 - `audience`: Expected audience claim
 - `access_token_duration`: Access token lifetime in seconds
 - `refresh_token_duration`: Refresh token lifetime in seconds
@@ -192,12 +202,12 @@ Configuration struct for JWT settings:
 ### Jwt Methods
 
 - `new(cfg: JwtCfg)` - Create a new JWT instance
-- `generate_token_pair(sub: String)` - Generate access and refresh tokens
-- `generate_access_token(sub: String)` - Generate only access token
+- `generate_token_pair(sub: String, ext: Option<Value>) -> TokenPair` - Generate access and refresh tokens
 - `validate_access_token(token: &str)` - Validate access token
 - `validate_refresh_token(token: &str)` - Validate refresh token
 - `refresh_access_token(refresh_token: &str)` - Generate new access token from refresh token
-- `VerifyJwt::new(public_key_pem)` - Create verifier with Ed25519 public key only
+- `VerifyJwt::new(public_key_pem, cfg)` - Create verifier with fixed `iss/aud` validation config
+- `VerifyJwtCfg` - Verifier config (`issuer` and `audience`)
 - `VerifyJwt::validate_token(token: &str)` - Validate token using public key
 - `AccessTokenVerifier` - verification trait implemented by both `Jwt` and `VerifyJwt`
 
@@ -205,10 +215,12 @@ Configuration struct for JWT settings:
 
 JWT claims structure:
 
+- `iss`: Issuer
 - `aud`: Audience
 - `sub`: Subject (typically user ID)
 - `exp`: Expiration time (Unix timestamp)
 - `iat`: Issued at time (Unix timestamp)
+- `ext`: Optional extension payload (`serde_json::Value`)
 
 ## Security Considerations
 

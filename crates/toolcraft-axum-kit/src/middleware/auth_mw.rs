@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Request, State},
+    extract::Request,
     http::{HeaderMap, StatusCode, header},
     middleware::Next,
     response::Response,
@@ -11,16 +11,16 @@ use toolcraft_jwt::AccessTokenVerifier;
 #[derive(Debug, Clone)]
 pub struct UserId(pub String);
 
-pub async fn auth<T>(
-    State(jwt): State<Arc<T>>,
-    mut req: Request,
-    next: Next,
-) -> Result<Response, StatusCode>
+pub async fn auth<T>(mut req: Request, next: Next) -> Result<Response, StatusCode>
 where
-    T: AccessTokenVerifier,
+    T: AccessTokenVerifier + 'static,
 {
     let headers = req.headers();
     let token = parse_token(headers)?;
+    let jwt = req
+        .extensions()
+        .get::<Arc<T>>()
+        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
     let claims = jwt
         .validate_access_token(&token)
         .map_err(|_| StatusCode::UNAUTHORIZED)?;
