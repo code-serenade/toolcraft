@@ -63,7 +63,7 @@ docx-rs = { version = "0.4" }
 byteorder = "1.5"
 config = "0.15"
 futures = "0.3"
-jsonwebtoken = "10"
+jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 tokio-tungstenite = "0.29"
 axum = { version = "0.8.6", features = ["macros"] }
 tower-http = { version = "0.6", features = ["cors"] }
