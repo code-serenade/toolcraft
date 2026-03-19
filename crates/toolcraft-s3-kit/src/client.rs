@@ -1,9 +1,11 @@
 use reqwest::Client;
-use toolcraft_utils::{sign_request, DEFAULT_REGION};
+use toolcraft_utils::{DEFAULT_REGION, sign_request};
 use url::Url;
 
-use crate::error::{Error, Result};
-use crate::util::{check_status, parse_bucket_names};
+use crate::{
+    error::{Error, Result},
+    util::{check_status, parse_bucket_names},
+};
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -55,9 +57,8 @@ impl S3Client {
 
         let body = if self.region != "us-east-1" {
             format!(
-                "<CreateBucketConfiguration>\
-                   <LocationConstraint>{}</LocationConstraint>\
-                 </CreateBucketConfiguration>",
+                "<CreateBucketConfiguration><LocationConstraint>{}</LocationConstraint></\
+                 CreateBucketConfiguration>",
                 self.region,
             )
         } else {

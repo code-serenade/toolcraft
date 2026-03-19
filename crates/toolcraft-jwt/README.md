@@ -32,10 +32,12 @@ Check the [crates.io page](https://crates.io/crates/toolcraft-jwt) for the lates
 use toolcraft_jwt::{Jwt, JwtCfg};
 
 fn main() {
-    // Configure JWT settings
+    // Configure JWT settings (typically from config file + env)
     let config = JwtCfg {
-        access_secret: "your-access-secret".to_string(),
-        refresh_secret: "your-refresh-secret".to_string(),
+        access_private_key_pem: std::env::var("JWT_ACCESS_PRIVATE_KEY_PEM").unwrap(),
+        access_public_key_pem: std::env::var("JWT_ACCESS_PUBLIC_KEY_PEM").unwrap(),
+        refresh_private_key_pem: std::env::var("JWT_REFRESH_PRIVATE_KEY_PEM").unwrap(),
+        refresh_public_key_pem: std::env::var("JWT_REFRESH_PUBLIC_KEY_PEM").unwrap(),
         audience: "your-app".to_string(),
         access_token_duration: 3600,  // 1 hour
         refresh_token_duration: 86400, // 24 hours
@@ -104,14 +106,40 @@ let new_access_token = jwt.refresh_access_token(&refresh_token)?;
 use toolcraft_jwt::JwtCfg;
 
 let config = JwtCfg {
-    access_secret: std::env::var("JWT_ACCESS_SECRET").unwrap(),
-    refresh_secret: std::env::var("JWT_REFRESH_SECRET").unwrap(),
+    access_private_key_pem: std::env::var("JWT_ACCESS_PRIVATE_KEY_PEM").unwrap(),
+    access_public_key_pem: std::env::var("JWT_ACCESS_PUBLIC_KEY_PEM").unwrap(),
+    refresh_private_key_pem: std::env::var("JWT_REFRESH_PRIVATE_KEY_PEM").unwrap(),
+    refresh_public_key_pem: std::env::var("JWT_REFRESH_PUBLIC_KEY_PEM").unwrap(),
     audience: "my-api".to_string(),
     access_token_duration: 900,    // 15 minutes
     refresh_token_duration: 604800, // 7 days
     access_key_validate_exp: true,  // Validate expiration
     refresh_key_validate_exp: true, // Validate expiration
 };
+```
+
+### Configuration File Example
+
+```toml
+[jwt]
+audience = "my-api"
+access_token_duration = 900
+refresh_token_duration = 604800
+access_key_validate_exp = true
+refresh_key_validate_exp = true
+
+access_private_key_pem = """-----BEGIN PRIVATE KEY-----
+...
+-----END PRIVATE KEY-----"""
+access_public_key_pem = """-----BEGIN PUBLIC KEY-----
+...
+-----END PUBLIC KEY-----"""
+refresh_private_key_pem = """-----BEGIN PRIVATE KEY-----
+...
+-----END PRIVATE KEY-----"""
+refresh_public_key_pem = """-----BEGIN PUBLIC KEY-----
+...
+-----END PUBLIC KEY-----"""
 ```
 
 ### Error Handling
@@ -134,14 +162,26 @@ match jwt.validate_access_token(&token) {
 }
 ```
 
+### Verify-Only (Public Key)
+
+```rust
+use toolcraft_jwt::VerifyJwt;
+
+let verifier = VerifyJwt::new(std::env::var("JWT_PUBLIC_KEY_PEM").unwrap())?;
+let claims = verifier.validate_token(&token)?;
+println!("sub={}", claims.sub);
+```
+
 ## API Reference
 
 ### JwtCfg
 
 Configuration struct for JWT settings:
 
-- `access_secret`: Secret key for access tokens
-- `refresh_secret`: Secret key for refresh tokens
+- `access_private_key_pem`: Ed25519 private key PEM for access tokens
+- `access_public_key_pem`: Ed25519 public key PEM for access tokens
+- `refresh_private_key_pem`: Ed25519 private key PEM for refresh tokens
+- `refresh_public_key_pem`: Ed25519 public key PEM for refresh tokens
 - `audience`: Expected audience claim
 - `access_token_duration`: Access token lifetime in seconds
 - `refresh_token_duration`: Refresh token lifetime in seconds
@@ -156,6 +196,9 @@ Configuration struct for JWT settings:
 - `validate_access_token(token: &str)` - Validate access token
 - `validate_refresh_token(token: &str)` - Validate refresh token
 - `refresh_access_token(refresh_token: &str)` - Generate new access token from refresh token
+- `VerifyJwt::new(public_key_pem)` - Create verifier with Ed25519 public key only
+- `VerifyJwt::validate_token(token: &str)` - Validate token using public key
+- `AccessTokenVerifier` - verification trait implemented by both `Jwt` and `VerifyJwt`
 
 ### Claims
 
@@ -168,7 +211,7 @@ JWT claims structure:
 
 ## Security Considerations
 
-1. **Secret Keys**: Use strong, randomly generated secret keys for production
+1. **Key Pairs**: Use dedicated Ed25519 key pairs for production
 2. **Key Rotation**: Regularly rotate your secret keys
 3. **HTTPS Only**: Always transmit tokens over HTTPS
 4. **Storage**: Never store tokens in localStorage; use httpOnly cookies when possible

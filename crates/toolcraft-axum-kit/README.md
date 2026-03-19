@@ -119,13 +119,18 @@ When the `jwt` feature is enabled:
 
 ```rust
 use axum::{Router, routing::get};
-use toolcraft_axum_kit::middleware::auth_mw::{auth_layer, Claims};
+use std::sync::Arc;
+use toolcraft_axum_kit::middleware::auth_mw::{auth, UserId};
+use toolcraft_jwt::Jwt;
 use axum::Extension;
+use axum::middleware;
 
 // Configure your JWT settings
 let jwt_config = toolcraft_jwt::JwtCfg {
-    access_secret: "your-secret".to_string(),
-    refresh_secret: "your-refresh-secret".to_string(),
+    access_private_key_pem: std::env::var("JWT_ACCESS_PRIVATE_KEY_PEM").unwrap(),
+    access_public_key_pem: std::env::var("JWT_ACCESS_PUBLIC_KEY_PEM").unwrap(),
+    refresh_private_key_pem: std::env::var("JWT_REFRESH_PRIVATE_KEY_PEM").unwrap(),
+    refresh_public_key_pem: std::env::var("JWT_REFRESH_PUBLIC_KEY_PEM").unwrap(),
     audience: "your-app".to_string(),
     access_token_duration: 3600,
     refresh_token_duration: 86400,
@@ -133,16 +138,16 @@ let jwt_config = toolcraft_jwt::JwtCfg {
     refresh_key_validate_exp: true,
 };
 
-let jwt = toolcraft_jwt::Jwt::new(jwt_config);
+let jwt_verifier = Arc::new(Jwt::new(jwt_config));
 
 // Protected routes
 let protected_routes = Router::new()
     .route("/profile", get(get_profile))
-    .layer(auth_layer(jwt.clone()));
+    .layer(middleware::from_fn_with_state(jwt_verifier, auth::<Jwt>));
 
 // Handler with authentication
-async fn get_profile(Extension(claims): Extension<Claims>) -> CommonOk<String> {
-    CommonOk(format!("Hello, user {}", claims.sub))
+async fn get_profile(Extension(user_id): Extension<UserId>) -> CommonOk<String> {
+    CommonOk(format!("Hello, user {}", user_id.0))
 }
 
 let app = Router::new()
@@ -240,7 +245,7 @@ async fn flexible_handler(id: u64) -> ResponseResult<User> {
 ### Middleware
 
 - `cors_layer()` - CORS middleware layer
-- `auth_layer(jwt: Jwt)` - JWT authentication middleware (requires `jwt` feature)
+- `auth::<T>` + `from_fn_with_state(...)` - JWT auth middleware using static dispatch (requires `jwt` feature)
 
 ## Features
 

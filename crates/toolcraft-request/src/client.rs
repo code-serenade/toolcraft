@@ -118,11 +118,7 @@ impl Request {
     }
 
     /// Send a DELETE request.
-    pub async fn delete(
-        &self,
-        endpoint: &str,
-        headers: Option<HeaderMap>,
-    ) -> Result<Response> {
+    pub async fn delete(&self, endpoint: &str, headers: Option<HeaderMap>) -> Result<Response> {
         let url = self.build_url(endpoint, None)?;
         let mut request = self.client.delete(url);
 

@@ -17,14 +17,17 @@ pub(crate) async fn check_status(resp: reqwest::Response) -> Result<reqwest::Res
         .into_iter()
         .next()
         .unwrap_or(body);
-    Err(Error::S3 { status: code, message })
+    Err(Error::S3 {
+        status: code,
+        message,
+    })
 }
 
 pub(crate) fn url_encode(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for byte in s.bytes() {
         match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+            b'A' ..= b'Z' | b'a' ..= b'z' | b'0' ..= b'9' | b'-' | b'_' | b'.' | b'~' => {
                 out.push(byte as char);
             }
             _ => out.push_str(&format!("%{byte:02X}")),
@@ -38,10 +41,10 @@ pub(crate) fn extract_tag_values(xml: &str, tag: &str) -> Vec<String> {
     let close = format!("</{tag}>");
     let mut values = Vec::new();
     let mut pos = 0;
-    while let Some(start) = xml[pos..].find(&open) {
+    while let Some(start) = xml[pos ..].find(&open) {
         let content_start = pos + start + open.len();
-        if let Some(end) = xml[content_start..].find(&close) {
-            values.push(xml[content_start..content_start + end].to_string());
+        if let Some(end) = xml[content_start ..].find(&close) {
+            values.push(xml[content_start .. content_start + end].to_string());
             pos = content_start + end + close.len();
         } else {
             break;

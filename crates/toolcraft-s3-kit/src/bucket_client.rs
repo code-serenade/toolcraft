@@ -3,9 +3,11 @@ use std::sync::Arc;
 use bytes::Bytes;
 use toolcraft_utils::{presign_get_object, presign_put_object, sign_request};
 
-use crate::client::S3Client;
-use crate::error::Result;
-use crate::util::{check_status, parse_object_list, url_encode, ObjectInfo};
+use crate::{
+    client::S3Client,
+    error::Result,
+    util::{ObjectInfo, check_status, parse_object_list, url_encode},
+};
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -26,7 +28,10 @@ pub struct BucketClient {
 
 impl BucketClient {
     pub fn new(client: Arc<S3Client>, bucket: impl Into<String>) -> Self {
-        Self { inner: client, bucket: bucket.into() }
+        Self {
+            inner: client,
+            bucket: bucket.into(),
+        }
     }
 }
 
