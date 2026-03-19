@@ -127,10 +127,11 @@ use axum::middleware;
 
 // Configure your JWT settings
 let jwt_config = toolcraft_jwt::JwtCfg {
-    access_private_key_pem: std::env::var("JWT_ACCESS_PRIVATE_KEY_PEM").unwrap(),
-    access_public_key_pem: std::env::var("JWT_ACCESS_PUBLIC_KEY_PEM").unwrap(),
-    refresh_private_key_pem: std::env::var("JWT_REFRESH_PRIVATE_KEY_PEM").unwrap(),
-    refresh_public_key_pem: std::env::var("JWT_REFRESH_PUBLIC_KEY_PEM").unwrap(),
+    key_dir: Some("./keys".to_string()),
+    access_private_key_pem: None,
+    access_public_key_pem: None,
+    refresh_private_key_pem: None,
+    refresh_public_key_pem: None,
     audience: "your-app".to_string(),
     access_token_duration: 3600,
     refresh_token_duration: 86400,

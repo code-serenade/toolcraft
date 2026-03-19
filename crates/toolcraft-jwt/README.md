@@ -34,10 +34,11 @@ use toolcraft_jwt::{Jwt, JwtCfg};
 fn main() {
     // Configure JWT settings (typically from config file + env)
     let config = JwtCfg {
-        access_private_key_pem: std::env::var("JWT_ACCESS_PRIVATE_KEY_PEM").unwrap(),
-        access_public_key_pem: std::env::var("JWT_ACCESS_PUBLIC_KEY_PEM").unwrap(),
-        refresh_private_key_pem: std::env::var("JWT_REFRESH_PRIVATE_KEY_PEM").unwrap(),
-        refresh_public_key_pem: std::env::var("JWT_REFRESH_PUBLIC_KEY_PEM").unwrap(),
+        key_dir: Some("./keys".to_string()),
+        access_private_key_pem: None,
+        access_public_key_pem: None,
+        refresh_private_key_pem: None,
+        refresh_public_key_pem: None,
         audience: "your-app".to_string(),
         access_token_duration: 3600,  // 1 hour
         refresh_token_duration: 86400, // 24 hours
@@ -106,10 +107,11 @@ let new_access_token = jwt.refresh_access_token(&refresh_token)?;
 use toolcraft_jwt::JwtCfg;
 
 let config = JwtCfg {
-    access_private_key_pem: std::env::var("JWT_ACCESS_PRIVATE_KEY_PEM").unwrap(),
-    access_public_key_pem: std::env::var("JWT_ACCESS_PUBLIC_KEY_PEM").unwrap(),
-    refresh_private_key_pem: std::env::var("JWT_REFRESH_PRIVATE_KEY_PEM").unwrap(),
-    refresh_public_key_pem: std::env::var("JWT_REFRESH_PUBLIC_KEY_PEM").unwrap(),
+    key_dir: Some("./keys".to_string()),
+    access_private_key_pem: None,
+    access_public_key_pem: None,
+    refresh_private_key_pem: None,
+    refresh_public_key_pem: None,
     audience: "my-api".to_string(),
     access_token_duration: 900,    // 15 minutes
     refresh_token_duration: 604800, // 7 days
@@ -122,24 +124,18 @@ let config = JwtCfg {
 
 ```toml
 [jwt]
+key_dir = "/etc/myapp/jwt"
 audience = "my-api"
 access_token_duration = 900
 refresh_token_duration = 604800
 access_key_validate_exp = true
 refresh_key_validate_exp = true
 
-access_private_key_pem = """-----BEGIN PRIVATE KEY-----
-...
------END PRIVATE KEY-----"""
-access_public_key_pem = """-----BEGIN PUBLIC KEY-----
-...
------END PUBLIC KEY-----"""
-refresh_private_key_pem = """-----BEGIN PRIVATE KEY-----
-...
------END PRIVATE KEY-----"""
-refresh_public_key_pem = """-----BEGIN PUBLIC KEY-----
-...
------END PUBLIC KEY-----"""
+# key_dir contains 4 files:
+# access_private_key.pem
+# access_public_key.pem
+# refresh_private_key.pem
+# refresh_public_key.pem
 ```
 
 ### Error Handling
@@ -182,6 +178,11 @@ Configuration struct for JWT settings:
 - `access_public_key_pem`: Ed25519 public key PEM for access tokens
 - `refresh_private_key_pem`: Ed25519 private key PEM for refresh tokens
 - `refresh_public_key_pem`: Ed25519 public key PEM for refresh tokens
+- `key_dir`: Optional key directory, if set reads 4 fixed files:
+  - `access_private_key.pem`
+  - `access_public_key.pem`
+  - `refresh_private_key.pem`
+  - `refresh_public_key.pem`
 - `audience`: Expected audience claim
 - `access_token_duration`: Access token lifetime in seconds
 - `refresh_token_duration`: Refresh token lifetime in seconds

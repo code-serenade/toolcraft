@@ -1,3 +1,5 @@
+use std::{fs, path::Path};
+
 use chrono::{Duration, Utc};
 use jsonwebtoken::{
     Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode,
@@ -9,10 +11,16 @@ use crate::{AccessTokenVerifier, Result, error::Error};
 /// Struct representing the JWT configuration parameters.
 #[derive(Debug, Deserialize)]
 pub struct JwtCfg {
-    pub access_private_key_pem: String,
-    pub access_public_key_pem: String,
-    pub refresh_private_key_pem: String,
-    pub refresh_public_key_pem: String,
+    #[serde(default)]
+    pub key_dir: Option<String>,
+    #[serde(default)]
+    pub access_private_key_pem: Option<String>,
+    #[serde(default)]
+    pub access_public_key_pem: Option<String>,
+    #[serde(default)]
+    pub refresh_private_key_pem: Option<String>,
+    #[serde(default)]
+    pub refresh_public_key_pem: Option<String>,
     pub audience: String,
     pub access_token_duration: usize,
     pub refresh_token_duration: usize,
@@ -65,11 +73,16 @@ impl Jwt {
 
     /// Creates a new `Jwt` instance from the given configuration.
     pub fn try_new(cfg: JwtCfg) -> Result<Self> {
-        let encoding_access_key = EncodingKey::from_ed_pem(cfg.access_private_key_pem.as_bytes())?;
-        let encoding_refresh_key =
-            EncodingKey::from_ed_pem(cfg.refresh_private_key_pem.as_bytes())?;
-        let decoding_access_key = DecodingKey::from_ed_pem(cfg.access_public_key_pem.as_bytes())?;
-        let decoding_refresh_key = DecodingKey::from_ed_pem(cfg.refresh_public_key_pem.as_bytes())?;
+        let (
+            access_private_key_pem,
+            access_public_key_pem,
+            refresh_private_key_pem,
+            refresh_public_key_pem,
+        ) = resolve_key_material(&cfg)?;
+        let encoding_access_key = EncodingKey::from_ed_pem(access_private_key_pem.as_bytes())?;
+        let encoding_refresh_key = EncodingKey::from_ed_pem(refresh_private_key_pem.as_bytes())?;
+        let decoding_access_key = DecodingKey::from_ed_pem(access_public_key_pem.as_bytes())?;
+        let decoding_refresh_key = DecodingKey::from_ed_pem(refresh_public_key_pem.as_bytes())?;
 
         let header = Header::new(Algorithm::EdDSA);
         let mut validation_access_key = Validation::new(Algorithm::EdDSA);
@@ -181,6 +194,58 @@ fn generate_expired_time(duration: usize) -> (usize, usize) {
     (iat, exp)
 }
 
+fn resolve_key_material(cfg: &JwtCfg) -> Result<(String, String, String, String)> {
+    if let Some(dir) = cfg.key_dir.as_deref() {
+        let dir = Path::new(dir);
+        let access_private = read_key_file(dir, "access_private_key.pem")?;
+        let access_public = read_key_file(dir, "access_public_key.pem")?;
+        let refresh_private = read_key_file(dir, "refresh_private_key.pem")?;
+        let refresh_public = read_key_file(dir, "refresh_public_key.pem")?;
+        return Ok((
+            access_private,
+            access_public,
+            refresh_private,
+            refresh_public,
+        ));
+    }
+
+    Ok((
+        require_non_empty(
+            cfg.access_private_key_pem.as_deref(),
+            "access_private_key_pem",
+        )?
+        .to_string(),
+        require_non_empty(
+            cfg.access_public_key_pem.as_deref(),
+            "access_public_key_pem",
+        )?
+        .to_string(),
+        require_non_empty(
+            cfg.refresh_private_key_pem.as_deref(),
+            "refresh_private_key_pem",
+        )?
+        .to_string(),
+        require_non_empty(
+            cfg.refresh_public_key_pem.as_deref(),
+            "refresh_public_key_pem",
+        )?
+        .to_string(),
+    ))
+}
+
+fn read_key_file(dir: &Path, file_name: &str) -> Result<String> {
+    let path = dir.join(file_name);
+    fs::read_to_string(&path).map_err(|e| {
+        Error::ErrorMessage(format!("failed to read key file {}: {e}", path.display()).into())
+    })
+}
+
+fn require_non_empty<'a>(value: Option<&'a str>, field_name: &str) -> Result<&'a str> {
+    value
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| Error::ErrorMessage(format!("missing required field: {field_name}").into()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -200,10 +265,11 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
 
     fn setup_jwt() -> Jwt {
         Jwt::new(JwtCfg {
-            access_private_key_pem: ACCESS_PRIVATE_KEY_PEM.to_string(),
-            access_public_key_pem: ACCESS_PUBLIC_KEY_PEM.to_string(),
-            refresh_private_key_pem: REFRESH_PRIVATE_KEY_PEM.to_string(),
-            refresh_public_key_pem: REFRESH_PUBLIC_KEY_PEM.to_string(),
+            key_dir: None,
+            access_private_key_pem: Some(ACCESS_PRIVATE_KEY_PEM.to_string()),
+            access_public_key_pem: Some(ACCESS_PUBLIC_KEY_PEM.to_string()),
+            refresh_private_key_pem: Some(REFRESH_PRIVATE_KEY_PEM.to_string()),
+            refresh_public_key_pem: Some(REFRESH_PUBLIC_KEY_PEM.to_string()),
             audience: "test_audience".to_string(),
             access_token_duration: 3600,
             refresh_token_duration: 86400,
@@ -251,6 +317,42 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
         assert!(validation_result.is_ok());
         let claims = validation_result.unwrap();
         assert_eq!(claims.aud, "test_audience");
+        assert_eq!(claims.sub, "test_sub");
+    }
+
+    #[test]
+    fn test_key_dir_config() {
+        use std::{
+            fs,
+            time::{SystemTime, UNIX_EPOCH},
+        };
+
+        let ts = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("toolcraft_jwt_keys_{ts}"));
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("access_private_key.pem"), ACCESS_PRIVATE_KEY_PEM).unwrap();
+        fs::write(dir.join("access_public_key.pem"), ACCESS_PUBLIC_KEY_PEM).unwrap();
+        fs::write(dir.join("refresh_private_key.pem"), REFRESH_PRIVATE_KEY_PEM).unwrap();
+        fs::write(dir.join("refresh_public_key.pem"), REFRESH_PUBLIC_KEY_PEM).unwrap();
+
+        let jwt = Jwt::new(JwtCfg {
+            key_dir: Some(dir.to_string_lossy().to_string()),
+            access_private_key_pem: None,
+            access_public_key_pem: None,
+            refresh_private_key_pem: None,
+            refresh_public_key_pem: None,
+            audience: "test_audience".to_string(),
+            access_token_duration: 3600,
+            refresh_token_duration: 86400,
+            access_key_validate_exp: true,
+            refresh_key_validate_exp: true,
+        });
+
+        let access_token = jwt.generate_access_token("test_sub".to_string()).unwrap();
+        let claims = jwt.validate_access_token(&access_token).unwrap();
         assert_eq!(claims.sub, "test_sub");
     }
 }
