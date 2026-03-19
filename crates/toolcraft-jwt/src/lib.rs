@@ -3,7 +3,7 @@ mod jwt;
 mod verify;
 
 pub use jwt::{Claims, Jwt, JwtCfg, TokenPair};
-pub use verify::{VerifyJwt, VerifyJwtCfg};
+pub use verify::VerifyJwt;
 
 use crate::error::Error;
 pub type Result<T> = std::result::Result<T, Error>;

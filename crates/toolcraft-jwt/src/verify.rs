@@ -2,33 +2,33 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 
 use crate::{AccessTokenVerifier, Claims, Result, error::Error};
 
-#[derive(Debug, Clone)]
-pub struct VerifyJwtCfg {
-    pub issuer: String,
-    pub audience: String,
-}
-
 /// Minimal verifier for asymmetric Ed25519 JWT.
 ///
-/// Only public key is required.
+/// Uses public key for signature verification with fixed issuer/audience checks.
 pub struct VerifyJwt {
     decoding_key: DecodingKey,
     validation: Validation,
 }
 
 impl VerifyJwt {
-    /// Create an Ed25519 verifier with public key PEM and claim validation config.
-    pub fn new(public_key_pem: impl AsRef<[u8]>, cfg: VerifyJwtCfg) -> Result<Self> {
+    /// Create an Ed25519 verifier with public key PEM and fixed issuer/audience.
+    pub fn new(
+        public_key_pem: impl AsRef<[u8]>,
+        issuer: impl AsRef<str>,
+        audience: impl AsRef<str>,
+    ) -> Result<Self> {
         let decoding_key = DecodingKey::from_ed_pem(public_key_pem.as_ref())?;
         let mut validation = Validation::new(Algorithm::EdDSA);
-        if cfg.issuer.is_empty() {
+        let issuer = issuer.as_ref();
+        let audience = audience.as_ref();
+        if issuer.is_empty() {
             return Err(Error::ErrorMessage("issuer must not be empty".into()));
         }
-        if cfg.audience.is_empty() {
+        if audience.is_empty() {
             return Err(Error::ErrorMessage("audience must not be empty".into()));
         }
-        validation.set_issuer(&[cfg.issuer]);
-        validation.set_audience(&[cfg.audience]);
+        validation.set_issuer(&[issuer]);
+        validation.set_audience(&[audience]);
         validation.validate_aud = true;
         Ok(Self {
             decoding_key,
@@ -79,14 +79,7 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
         )
         .unwrap();
 
-        let verifier = VerifyJwt::new(
-            PUBLIC_KEY_PEM,
-            VerifyJwtCfg {
-                issuer: "test_issuer".to_string(),
-                audience: "test_audience".to_string(),
-            },
-        )
-        .unwrap();
+        let verifier = VerifyJwt::new(PUBLIC_KEY_PEM, "test_issuer", "test_audience").unwrap();
         let decoded = verifier.validate_token(&token).unwrap();
         assert_eq!(decoded.sub, "test_sub");
     }
