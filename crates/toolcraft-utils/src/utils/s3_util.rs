@@ -9,7 +9,8 @@ type HmacSha256 = Hmac<Sha256>;
 /// Default presigned URL expiry: 15 minutes (matches AWS SDK v2/v3 and boto3 defaults).
 pub const PRESIGN_DEFAULT_EXPIRES_SECS: u64 = 900;
 
-/// Default region for S3-compatible services that have no real region (MinIO, RustFS, SeaweedFS, etc.).
+/// Default region for S3-compatible services that have no real region (MinIO, RustFS, SeaweedFS,
+/// etc.).
 pub const DEFAULT_REGION: &str = "us-east-1";
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -124,8 +125,13 @@ pub fn presign_get_object(
     expires_secs: Option<u64>,
 ) -> String {
     presign_object(
-        "GET", access_key, secret_key, bucket, key,
-        region.unwrap_or(DEFAULT_REGION), endpoint,
+        "GET",
+        access_key,
+        secret_key,
+        bucket,
+        key,
+        region.unwrap_or(DEFAULT_REGION),
+        endpoint,
         expires_secs.unwrap_or(PRESIGN_DEFAULT_EXPIRES_SECS),
     )
 }
@@ -141,8 +147,13 @@ pub fn presign_put_object(
     expires_secs: Option<u64>,
 ) -> String {
     presign_object(
-        "PUT", access_key, secret_key, bucket, key,
-        region.unwrap_or(DEFAULT_REGION), endpoint,
+        "PUT",
+        access_key,
+        secret_key,
+        bucket,
+        key,
+        region.unwrap_or(DEFAULT_REGION),
+        endpoint,
         expires_secs.unwrap_or(PRESIGN_DEFAULT_EXPIRES_SECS),
     )
 }
@@ -185,7 +196,8 @@ fn presign_object(
         .join("&");
 
     let canonical_request = format!(
-        "{method}\n{canonical_uri}\n{canonical_query_string}\nhost:{host}\n\nhost\nUNSIGNED-PAYLOAD"
+        "{method}\n{canonical_uri}\n{canonical_query_string}\nhost:{host}\n\nhost\\
+         nUNSIGNED-PAYLOAD"
     );
 
     let string_to_sign = format!(
@@ -204,7 +216,10 @@ fn presign_object(
 
 // Derive signing key: AWS4+secret → date → region → s3 → aws4_request
 fn derive_signing_key(secret_key: &str, date_stamp: &str, region: &str) -> Vec<u8> {
-    let date_key = hmac_sha256(format!("AWS4{secret_key}").as_bytes(), date_stamp.as_bytes());
+    let date_key = hmac_sha256(
+        format!("AWS4{secret_key}").as_bytes(),
+        date_stamp.as_bytes(),
+    );
     let date_region_key = hmac_sha256(&date_key, region.as_bytes());
     let date_region_service_key = hmac_sha256(&date_region_key, b"s3");
     hmac_sha256(&date_region_service_key, b"aws4_request")
@@ -235,7 +250,7 @@ fn url_encode(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for byte in s.bytes() {
         match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+            b'A' ..= b'Z' | b'a' ..= b'z' | b'0' ..= b'9' | b'-' | b'_' | b'.' | b'~' => {
                 out.push(byte as char);
             }
             _ => out.push_str(&format!("%{byte:02X}")),
