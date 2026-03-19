@@ -120,7 +120,7 @@ When the `jwt` feature is enabled:
 ```rust
 use axum::{Router, routing::get};
 use std::sync::Arc;
-use toolcraft_axum_kit::middleware::auth_mw::{auth, UserId};
+use toolcraft_axum_kit::middleware::auth_mw::{auth, AuthUser};
 use toolcraft_jwt::Jwt;
 use axum::Extension;
 use axum::middleware;
@@ -148,9 +148,9 @@ let protected_routes = Router::new()
     .layer(middleware::from_fn(auth::<Jwt>))
     .layer(Extension(jwt_verifier));
 
-// Handler with authentication
-async fn get_profile(Extension(user_id): Extension<UserId>) -> CommonOk<String> {
-    CommonOk(format!("Hello, user {}", user_id.0))
+// Handler with authentication context (user_id + ext)
+async fn get_profile(Extension(user): Extension<AuthUser>) -> CommonOk<String> {
+    CommonOk(format!("Hello, user {}, ext={:?}", user.user_id, user.ext))
 }
 
 let app = Router::new()

@@ -31,7 +31,7 @@ pub struct JwtCfg {
 }
 
 /// Represents the JWT claims.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     pub iss: String,
     pub aud: String,

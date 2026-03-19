@@ -1,6 +1,7 @@
 [jwt]
 key_dir = "./config/keys"
 audience = "my-api"
+issuer = "my-auth-server"
 access_token_duration = 900
 refresh_token_duration = 604800
 access_key_validate_exp = true
