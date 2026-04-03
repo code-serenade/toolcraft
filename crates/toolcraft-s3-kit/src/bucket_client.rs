@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 
 use bytes::Bytes;
 use toolcraft_utils::{presign_get_object, presign_put_object, sign_request};
@@ -69,7 +69,8 @@ impl BucketClient {
         parse_object_list(&xml)
     }
 
-    pub async fn upload_file(
+    /// Upload raw bytes as an object.
+    pub async fn upload_bytes(
         &self,
         key: &str,
         data: Bytes,
@@ -91,6 +92,30 @@ impl BucketClient {
             req = req.header("content-type", ct);
         }
         check_status(req.send().await?).await.map(|_| ())
+    }
+
+    /// Upload a local file to S3, returning uploaded bytes length.
+    pub async fn upload_local_file<P: AsRef<Path>>(
+        &self,
+        key: &str,
+        local_path: P,
+        content_type: Option<&str>,
+    ) -> Result<u64> {
+        let bytes = tokio::fs::read(local_path.as_ref()).await?;
+        let size = bytes.len() as u64;
+        self.upload_bytes(key, Bytes::from(bytes), content_type)
+            .await?;
+        Ok(size)
+    }
+
+    /// Backward-compatible alias. Prefer [`BucketClient::upload_bytes`].
+    pub async fn upload_file(
+        &self,
+        key: &str,
+        data: Bytes,
+        content_type: Option<&str>,
+    ) -> Result<()> {
+        self.upload_bytes(key, data, content_type).await
     }
 
     pub async fn download_object(&self, key: &str) -> Result<Bytes> {

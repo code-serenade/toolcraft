@@ -131,6 +131,63 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### Upload Local File Example
+
+```rust
+use std::sync::Arc;
+use toolcraft_s3_kit::{BucketClient, S3Client};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Arc::new(S3Client::new(
+        "http://localhost:9000",
+        "minioadmin",
+        "minioadmin",
+        None,
+    )?);
+
+    let bucket = BucketClient::new(Arc::clone(&client), "my-bucket");
+    let uploaded = bucket
+        .upload_local_file(
+            "reports/weekly.csv",
+            "/tmp/weekly.csv",
+            Some("text/csv"),
+        )
+        .await?;
+
+    println!("Uploaded {} bytes", uploaded);
+    Ok(())
+}
+```
+
+### Config Example (URL / Key / Secret / Bucket)
+
+```rust
+use toolcraft_s3_kit::S3BucketConfig;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Required:
+    // - TOOLCRAFT_S3_ENDPOINT (or S3_ENDPOINT)
+    // - TOOLCRAFT_S3_ACCESS_KEY (or S3_ACCESS_KEY)
+    // - TOOLCRAFT_S3_SECRET_KEY (or S3_SECRET_KEY)
+    // - TOOLCRAFT_S3_BUCKET (or S3_BUCKET)
+    // Optional:
+    // - TOOLCRAFT_S3_REGION (or S3_REGION)
+    let cfg = S3BucketConfig::from_env()?;
+    let bucket = cfg.build_bucket_client()?;
+
+    bucket
+        .upload_local_file("plan.md", "./plan.md", Some("text/markdown"))
+        .await?;
+    bucket
+        .upload_local_file("status.md", "./reports/status.md", Some("text/markdown"))
+        .await?;
+
+    Ok(())
+}
+```
+
 ## Advanced Features
 
 ### Custom Configuration
@@ -171,6 +228,8 @@ match client.get_object("bucket", "key").await {
 
 - **Object Operations**
   - `put_object()`
+  - `upload_local_file()` - Upload local file path to S3
+  - `upload_bytes()` - Upload in-memory bytes to S3
   - `get_object()`
   - `delete_object()`
   - `list_objects()`
