@@ -164,13 +164,13 @@ match jwt.validate_access_token(&token) {
 ### Verify-Only (Public Key)
 
 ```rust
-use toolcraft_jwt::VerifyJwt;
+use toolcraft_jwt::{VerifyJwt, VerifyJwtCfg};
 
-let verifier = VerifyJwt::new(
-    std::env::var("JWT_PUBLIC_KEY_PEM").unwrap(),
-    "your-issuer",
-    "your-audience",
-)?;
+let verifier = VerifyJwt::new(VerifyJwtCfg {
+    public_key_pem: std::env::var("JWT_PUBLIC_KEY_PEM").unwrap(),
+    issuer: "your-issuer".to_string(),
+    audience: "your-audience".to_string(),
+})?;
 let claims = verifier.validate_token(&token)?;
 println!("sub={}", claims.sub);
 ```
@@ -204,7 +204,7 @@ Configuration struct for JWT settings:
 - `validate_access_token(token: &str)` - Validate access token
 - `validate_refresh_token(token: &str)` - Validate refresh token
 - `refresh_access_token(refresh_token: &str)` - Generate new access token from refresh token
-- `VerifyJwt::new(public_key_pem, issuer, audience)` - Create verifier with fixed `iss/aud` validation
+- `VerifyJwt::new(cfg: VerifyJwtCfg)` - Create verifier with fixed `iss/aud` validation
 - `VerifyJwt::validate_token(token: &str)` - Validate token using public key
 - `AccessTokenVerifier` - verification trait implemented by both `Jwt` and `VerifyJwt`
 

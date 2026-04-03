@@ -1,6 +1,14 @@
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
+use serde::Deserialize;
 
 use crate::{AccessTokenVerifier, Claims, Result, error::Error};
+
+#[derive(Debug, Deserialize)]
+pub struct VerifyJwtCfg {
+    pub public_key_pem: String,
+    pub issuer: String,
+    pub audience: String,
+}
 
 /// Minimal verifier for asymmetric Ed25519 JWT.
 ///
@@ -12,15 +20,15 @@ pub struct VerifyJwt {
 
 impl VerifyJwt {
     /// Create an Ed25519 verifier with public key PEM and fixed issuer/audience.
-    pub fn new(
-        public_key_pem: impl AsRef<[u8]>,
-        issuer: impl AsRef<str>,
-        audience: impl AsRef<str>,
-    ) -> Result<Self> {
-        let decoding_key = DecodingKey::from_ed_pem(public_key_pem.as_ref())?;
+    pub fn new(cfg: VerifyJwtCfg) -> Result<Self> {
+        let VerifyJwtCfg {
+            public_key_pem,
+            issuer,
+            audience,
+        } = cfg;
+
+        let decoding_key = DecodingKey::from_ed_pem(public_key_pem.as_bytes())?;
         let mut validation = Validation::new(Algorithm::EdDSA);
-        let issuer = issuer.as_ref();
-        let audience = audience.as_ref();
         if issuer.is_empty() {
             return Err(Error::ErrorMessage("issuer must not be empty".into()));
         }
@@ -79,7 +87,12 @@ MCowBQYDK2VwAyEA2+Jj2UvNCvQiUPNYRgSi0cJSPiJI6Rs6D0UTeEpQVj8=
         )
         .unwrap();
 
-        let verifier = VerifyJwt::new(PUBLIC_KEY_PEM, "test_issuer", "test_audience").unwrap();
+        let verifier = VerifyJwt::new(VerifyJwtCfg {
+            public_key_pem: PUBLIC_KEY_PEM.to_string(),
+            issuer: "test_issuer".to_string(),
+            audience: "test_audience".to_string(),
+        })
+        .unwrap();
         let decoded = verifier.validate_token(&token).unwrap();
         assert_eq!(decoded.sub, "test_sub");
     }
