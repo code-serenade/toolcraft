@@ -1,6 +1,6 @@
 use base64::{Engine as _, engine::general_purpose};
 use chrono::{Duration, Utc};
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use serde_json::{Value, json};
 use sha2::Sha256;
 

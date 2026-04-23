@@ -10,22 +10,6 @@ members = [
 ]
 resolver = "3"
 
-[package]
-name = "toolcraft"
-version.workspace = true
-edition.workspace = true
-description.workspace = true
-authors.workspace = true
-license.workspace = true
-repository.workspace = true
-documentation.workspace = true
-
-[dependencies]
-toolcraft-request = { path = "crates/toolcraft-request" }
-tokio = { workspace = true }
-futures-util = { workspace = true }
-serde_json = { workspace = true }
-
 [workspace.package]
 version = "0.2.2"
 edition = "2024"
@@ -52,8 +36,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.145"
 base64 = "0.22"
 chrono = { version = "0.4.42", features = ["serde"] }
-hmac = "0.12"
-sha2 = "0.10"
+hmac = "0.13"
+sha2 = "0.11"
 hex = "0.4"
 reqwest = { version = "0.13", default-features = false, features = ["json", "stream", "multipart"] }
 url = "2"
@@ -65,9 +49,8 @@ config = "0.15"
 futures = "0.3"
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 tokio-tungstenite = "0.29"
-axum = { version = "0.8.6", features = ["macros"] }
+axum = { version = "0.8", features = ["macros"] }
 tower-http = { version = "0.6", features = ["cors"] }
 surrealdb = "3"
 rand = "0.10"
-utoipa = "5"
 time = { version = "0.3.44", features = ["formatting", "parsing"] }

@@ -2,9 +2,8 @@ use core::str;
 
 use axum::{Json, http::StatusCode};
 use serde::Serialize;
-use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, ToSchema, Default, Clone)]
+#[derive(Debug, Serialize, Default, Clone)]
 pub struct Empty;
 
 pub type CommonOk = CommonResponse<Empty>;
@@ -12,14 +11,14 @@ pub type ApiError = (StatusCode, Json<CommonError>);
 
 pub trait IntoCommonResponse<T>
 where
-    T: Serialize + ToSchema,
+    T: Serialize,
 {
     fn into_common_response(self) -> CommonResponse<T>;
 }
 
 impl<T> IntoCommonResponse<T> for T
 where
-    T: Serialize + ToSchema,
+    T: Serialize,
 {
     fn into_common_response(self) -> CommonResponse<T> {
         CommonResponse {
@@ -30,10 +29,10 @@ where
     }
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize)]
 pub struct CommonResponse<T>
 where
-    T: Serialize + ToSchema,
+    T: Serialize,
 {
     pub code: i16,
     pub data: T,
@@ -42,7 +41,7 @@ where
 
 impl<T> CommonResponse<T>
 where
-    T: Serialize + ToSchema,
+    T: Serialize,
 {
     pub fn to_json(self) -> Json<Self> {
         Json(self)
@@ -51,7 +50,7 @@ where
 
 impl<T> Default for CommonResponse<T>
 where
-    T: Serialize + ToSchema + Default,
+    T: Serialize + Default,
 {
     fn default() -> Self {
         CommonResponse {
@@ -62,7 +61,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize)]
 pub struct CommonError {
     pub code: i16,
     pub message: String,
