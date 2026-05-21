@@ -132,6 +132,21 @@ impl Request {
         Ok(response.into())
     }
 
+    /// Send a HEAD request.
+    pub async fn head(&self, endpoint: &str, headers: Option<HeaderMap>) -> Result<Response> {
+        let url = self.build_url(endpoint, None)?;
+        let mut request = self.client.head(url);
+
+        let mut combined_headers = self.default_headers.clone();
+        if let Some(custom_headers) = headers {
+            combined_headers.merge(custom_headers);
+        }
+        request = request.headers(combined_headers.inner().clone());
+
+        let response = request.send().await?;
+        Ok(response.into())
+    }
+
     /// Send a POST request with multipart/form-data.
     ///
     /// # Arguments

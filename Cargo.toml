@@ -25,13 +25,13 @@ toolcraft-jwt = { path = "crates/toolcraft-jwt", version = "0.3.6" }
 toolcraft-axum-kit = { path = "crates/toolcraft-axum-kit" }
 toolcraft-request = { path = "crates/toolcraft-request"}
 toolcraft-s3-kit = { path = "crates/toolcraft-s3-kit" }
-toolcraft-utils = { path = "crates/toolcraft-utils", version = "0.2.3"}
+toolcraft-utils = { path = "crates/toolcraft-utils", version = "0.2.4"}
 
 thiserror = "2.0.17"
 tokio = { version = "1.46", features = ["full"] }
 regex = "1.12.1"
 zip = "8"
-quick-xml = { version = "0.39", features = ["encoding"] }
+quick-xml = { version = "0.40", features = ["encoding"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.145"
 base64 = "0.22"

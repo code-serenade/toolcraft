@@ -235,6 +235,7 @@ match client.get("/api/data", None, None).await {
 
 - `put(endpoint, body, headers)` - Send PUT request with JSON
 - `delete(endpoint, headers)` - Send DELETE request
+- `head(endpoint, headers)` - Send HEAD request
 
 - `post_form(endpoint, form_fields, headers)` - Send POST with multipart/form-data
   - `endpoint: &str` - API endpoint
