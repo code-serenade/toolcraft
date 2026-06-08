@@ -117,6 +117,26 @@ impl Request {
         Ok(response.into())
     }
 
+    /// Send a PUT request with raw bytes body.
+    pub async fn put_bytes(
+        &self,
+        endpoint: &str,
+        body: impl Into<bytes::Bytes>,
+        headers: Option<HeaderMap>,
+    ) -> Result<Response> {
+        let url = self.build_url(endpoint, None)?;
+        let mut request = self.client.put(url).body(body.into());
+
+        let mut combined_headers = self.default_headers.clone();
+        if let Some(custom_headers) = headers {
+            combined_headers.merge(custom_headers);
+        }
+        request = request.headers(combined_headers.inner().clone());
+
+        let response = request.send().await?;
+        Ok(response.into())
+    }
+
     /// Send a DELETE request.
     pub async fn delete(&self, endpoint: &str, headers: Option<HeaderMap>) -> Result<Response> {
         let url = self.build_url(endpoint, None)?;
