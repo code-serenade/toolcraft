@@ -1,6 +1,7 @@
 use std::{path::Path, sync::Arc};
 
 use bytes::Bytes;
+use toolcraft_request::HeaderMap;
 use toolcraft_utils::{presign_get_object, presign_put_object, sign_request};
 
 use crate::{
@@ -57,12 +58,11 @@ impl BucketClient {
 
         let resp = c
             .http
-            .get(format!("{}?{}", c.url(&path), query))
-            .header("host", c.host())
-            .header("x-amz-date", &auth.x_amz_date)
-            .header("x-amz-content-sha256", &auth.x_amz_content_sha256)
-            .header("authorization", &auth.authorization)
-            .send()
+            .get(
+                &format!("{}?{}", c.url(&path), query),
+                None,
+                Some(c.signed_headers(&auth)?),
+            )
             .await?;
 
         let xml = check_status(resp).await?.text().await?;
@@ -87,11 +87,18 @@ impl BucketClient {
             None,
         );
 
-        let mut req = c.http.put(&url).body(data);
+        let mut headers = HeaderMap::new();
         if let Some(ct) = content_type {
-            req = req.header("content-type", ct);
+            headers.insert("content-type", ct.to_string())?;
         }
-        check_status(req.send().await?).await.map(|_| ())
+        let headers = if headers.inner().is_empty() {
+            None
+        } else {
+            Some(headers)
+        };
+        check_status(c.http.put_bytes(&url, data, headers).await?)
+            .await
+            .map(|_| ())
     }
 
     /// Upload a local file to S3, returning uploaded bytes length.
@@ -130,7 +137,7 @@ impl BucketClient {
             None,
         );
 
-        let resp = check_status(c.http.get(&url).send().await?).await?;
+        let resp = check_status(c.http.get(&url, None, None).await?).await?;
         Ok(resp.bytes().await?)
     }
 
@@ -149,12 +156,7 @@ impl BucketClient {
 
         let resp = c
             .http
-            .delete(c.url(&path))
-            .header("host", c.host())
-            .header("x-amz-date", &auth.x_amz_date)
-            .header("x-amz-content-sha256", &auth.x_amz_content_sha256)
-            .header("authorization", &auth.authorization)
-            .send()
+            .delete(&c.url(&path), Some(c.signed_headers(&auth)?))
             .await?;
 
         check_status(resp).await.map(|_| ())

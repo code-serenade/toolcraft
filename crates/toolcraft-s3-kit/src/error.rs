@@ -3,7 +3,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("request error: {0}")]
-    Request(#[from] reqwest::Error),
+    Request(#[from] toolcraft_request::error::Error),
 
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),

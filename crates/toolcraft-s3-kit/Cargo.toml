@@ -3,7 +3,7 @@ name = "toolcraft-s3-kit"
 description = "Toolcraft S3-compatible storage client"
 documentation = "https://docs.rs/toolcraft-s3-kit"
 publish = true
-version = "0.2.2"
+version = "0.2.3"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -13,7 +13,6 @@ repository.workspace = true
 toolcraft-request = { workspace = true }
 toolcraft-utils = { workspace = true}
 thiserror.workspace = true
-reqwest.workspace = true
 bytes.workspace = true
 url.workspace = true
 tokio = { workspace = true, features = ["fs"] }

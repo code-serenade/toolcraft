@@ -1,3 +1,5 @@
+use toolcraft_request::response::Response;
+
 use crate::error::{Error, Result};
 
 pub struct ObjectInfo {
@@ -6,9 +8,9 @@ pub struct ObjectInfo {
     pub last_modified: String,
 }
 
-pub(crate) async fn check_status(resp: reqwest::Response) -> Result<reqwest::Response> {
+pub(crate) async fn check_status(resp: Response) -> Result<Response> {
     let status = resp.status();
-    if status.is_success() || status == reqwest::StatusCode::NO_CONTENT {
+    if status.is_success() || status.as_u16() == 204 {
         return Ok(resp);
     }
     let code = status.as_u16();

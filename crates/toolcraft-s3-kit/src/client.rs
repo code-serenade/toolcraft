@@ -1,9 +1,9 @@
-use reqwest::Client;
+use toolcraft_request::{HeaderMap, Request};
 use toolcraft_utils::{DEFAULT_REGION, sign_request};
 use url::Url;
 
 use crate::{
-    error::{Error, Result},
+    error::Result,
     util::{check_status, parse_bucket_names},
 };
 
@@ -14,7 +14,7 @@ pub struct S3Client {
     pub(crate) secret_key: String,
     pub(crate) base_url: Url,
     pub(crate) region: String,
-    pub(crate) http: Client,
+    pub(crate) http: Request,
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -27,9 +27,7 @@ impl S3Client {
         region: Option<&str>,
     ) -> Result<Self> {
         let base_url = Url::parse(endpoint)?;
-        let http = Client::builder()
-            .build()
-            .map_err(|e| Error::Message(e.to_string().into()))?;
+        let http = Request::new()?;
         Ok(Self {
             access_key: access_key.to_string(),
             secret_key: secret_key.to_string(),
@@ -67,13 +65,7 @@ impl S3Client {
 
         let resp = self
             .http
-            .put(self.url(&path))
-            .header("host", self.host())
-            .header("x-amz-date", &auth.x_amz_date)
-            .header("x-amz-content-sha256", &auth.x_amz_content_sha256)
-            .header("authorization", &auth.authorization)
-            .body(body)
-            .send()
+            .put_bytes(&self.url(&path), body, Some(self.signed_headers(&auth)?))
             .await?;
 
         check_status(resp).await.map(|_| ())
@@ -93,12 +85,7 @@ impl S3Client {
 
         let resp = self
             .http
-            .delete(self.url(&path))
-            .header("host", self.host())
-            .header("x-amz-date", &auth.x_amz_date)
-            .header("x-amz-content-sha256", &auth.x_amz_content_sha256)
-            .header("authorization", &auth.authorization)
-            .send()
+            .delete(&self.url(&path), Some(self.signed_headers(&auth)?))
             .await?;
 
         check_status(resp).await.map(|_| ())
@@ -117,12 +104,7 @@ impl S3Client {
 
         let resp = self
             .http
-            .get(self.url("/"))
-            .header("host", self.host())
-            .header("x-amz-date", &auth.x_amz_date)
-            .header("x-amz-content-sha256", &auth.x_amz_content_sha256)
-            .header("authorization", &auth.authorization)
-            .send()
+            .get(&self.url("/"), None, Some(self.signed_headers(&auth)?))
             .await?;
 
         let xml = check_status(resp).await?.text().await?;
@@ -143,5 +125,17 @@ impl S3Client {
 
     pub(crate) fn url(&self, path: &str) -> String {
         format!("{}://{}{}", self.base_url.scheme(), self.host(), path)
+    }
+
+    pub(crate) fn signed_headers(
+        &self,
+        auth: &toolcraft_utils::S3AuthHeaders,
+    ) -> Result<HeaderMap> {
+        let mut headers = HeaderMap::new();
+        headers.insert("host", self.host())?;
+        headers.insert("x-amz-date", auth.x_amz_date.clone())?;
+        headers.insert("x-amz-content-sha256", auth.x_amz_content_sha256.clone())?;
+        headers.insert("authorization", auth.authorization.clone())?;
+        Ok(headers)
     }
 }
