@@ -223,6 +223,29 @@ match client.get("/api/data", None, None).await {
 
 ### HTTP Methods
 
+For platform integrations or other APIs with non-standard request shapes, use
+the generic `request(method, endpoint, RequestOptions)` entry point. It
+supports query parameters, per-request headers, JSON, URL-encoded form,
+multipart, and raw byte bodies:
+
+```rust
+use toolcraft_request::{Method, Request, RequestBody, RequestOptions};
+use serde_json::json;
+
+let response = client.request(
+    Method::POST,
+    "https://api.example.com/items",
+    RequestOptions {
+        query: None,
+        headers: None,
+        body: Some(RequestBody::Json(json!({"title": "example"}))),
+    },
+).await?;
+```
+
+The existing methods below remain convenience wrappers for common request
+shapes and are not removed.
+
 - `get(endpoint, query, headers)` - Send GET request
   - `endpoint: &str` - API endpoint
   - `query: Option<Vec<(String, String)>>` - Query parameters

@@ -1,5 +1,5 @@
 use futures_util::StreamExt;
-use reqwest::{Client, multipart};
+use reqwest::{Client, Method, multipart};
 use url::Url;
 
 use crate::{
@@ -14,6 +14,24 @@ pub struct Request {
     client: Client,
     base_url: Option<Url>,
     default_headers: HeaderMap,
+}
+
+/// Body formats supported by the generic request entry point.
+#[derive(Debug, Clone)]
+pub enum RequestBody {
+    Json(serde_json::Value),
+    Form(Vec<(String, String)>),
+    Multipart(Vec<FormField>),
+    Bytes(bytes::Bytes),
+}
+
+/// Per-request options. The client itself remains reusable and carries no
+/// request-specific credentials or headers.
+#[derive(Debug, Clone, Default)]
+pub struct RequestOptions {
+    pub query: Option<Vec<(String, String)>>,
+    pub headers: Option<HeaderMap>,
+    pub body: Option<RequestBody>,
 }
 
 impl Request {
@@ -55,6 +73,50 @@ impl Request {
     /// Set default headers to be applied on all requests.
     pub fn set_default_headers(&mut self, headers: HeaderMap) {
         self.default_headers = headers;
+    }
+
+    /// Send an arbitrary HTTP request through the shared reqwest client.
+    ///
+    /// This is the extension point for platform APIs with unusual methods,
+    /// form bodies, signed bytes, or multipart uploads. Prefer the existing
+    /// convenience methods for ordinary JSON calls.
+    pub async fn request(
+        &self,
+        method: Method,
+        endpoint: &str,
+        options: RequestOptions,
+    ) -> Result<Response> {
+        let url = self.build_url(endpoint, options.query)?;
+        let mut request = self.client.request(method, url);
+
+        let mut combined_headers = self.default_headers.clone();
+        if let Some(headers) = options.headers {
+            combined_headers.merge(headers);
+        }
+        request = request.headers(combined_headers.inner().clone());
+
+        request = match options.body {
+            None => request,
+            Some(RequestBody::Json(body)) => request.json(&body),
+            Some(RequestBody::Form(fields)) => request.form(&fields),
+            Some(RequestBody::Multipart(fields)) => {
+                let mut form = multipart::Form::new();
+                for field in fields {
+                    form = match field {
+                        FormField::Text { name, value } => form.text(name, value),
+                        FormField::File {
+                            name,
+                            filename,
+                            content,
+                        } => form.part(name, multipart::Part::bytes(content).file_name(filename)),
+                    };
+                }
+                request.multipart(form)
+            }
+            Some(RequestBody::Bytes(body)) => request.body(body),
+        };
+
+        Ok(request.send().await?.into())
     }
 
     /// Send a GET request.
